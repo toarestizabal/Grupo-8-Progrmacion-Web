@@ -11,6 +11,8 @@
 
     <title>Combate - PixelForge Games</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet"
           href="../estilos.css">
 
@@ -29,7 +31,9 @@
 </header>
 
 
-<nav>
+<nav class="navbar navbar-dark" aria-label="Navegación principal">
+
+    <div class="container justify-content-center gap-1">
 
     <a href="../index.html">
         Inicio
@@ -55,11 +59,17 @@
         Combate
     </a>
 
+    <a href="../registro.html">
+        Registro
+    </a>
+
+    </div>
+
 </nav>
 
 
 
-<main>
+<main class="container">
 
 
 <section class="introduccion">
@@ -76,10 +86,10 @@
 
 
 
-<section class="grid">
+<section class="row gap-4 justify-content-center">
 
 
-<article class="tarjeta">
+<article class="tarjeta col-12 col-md-5">
 
     <img src="../imagenes/MARVEL Tōkon Fighting Souls.jpg" alt="MARVEL Tōkon: Fighting Souls">
 
@@ -106,7 +116,7 @@
 
 
 
-<article class="tarjeta">
+<article class="tarjeta col-12 col-md-5">
 
     <img src="../imagenes/Avatar Legends The Fighting Game.jpg" alt="Avatar Legends: The Fighting Game">
 
@@ -160,6 +170,7 @@
 
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 

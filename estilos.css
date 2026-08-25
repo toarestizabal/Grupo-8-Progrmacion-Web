@@ -1,4 +1,4 @@
-﻿* {
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -6,120 +6,188 @@
 
 body {
     font-family: Arial, Helvetica, sans-serif;
-    background-color: #0f172a;
     color: #f8fafc;
+    background-color: #080d1b;
     line-height: 1.6;
 }
 
 header {
-    background-color: #111827;
-    padding: 25px 20px;
+    padding: 35px 20px;
     text-align: center;
-    border-bottom: 3px solid #6366f1;
+    background-color: #111827;
+    border-bottom: 2px solid #6366f1;
 }
 
 header h1 {
-    font-size: 2.4rem;
     margin-bottom: 5px;
+    font-size: 2.7rem;
+    font-weight: bold;
 }
 
-header p {
-    color: #cbd5e1;
+header p,
+.introduccion p,
+.contenido p {
+    color: #b8c2d3;
 }
 
 nav {
-    background-color: #1e293b;
-    padding: 14px;
-    text-align: center;
+    padding: 12px;
+    background-color: #182236;
 }
 
 nav a {
-    color: white;
-    text-decoration: none;
-    margin: 5px 8px;
     display: inline-block;
-    padding: 8px 13px;
+    margin: 3px 5px;
+    padding: 8px 12px;
+    color: #cbd5e1;
+    text-decoration: none;
     border-radius: 6px;
-    transition: 0.2s;
 }
 
-nav a:hover {
+nav a:hover,
+nav .nav-link.active {
+    color: white;
     background-color: #4f46e5;
+}
+
+.navbar-brand {
+    color: white;
+    font-weight: bold;
 }
 
 main {
     width: 92%;
     max-width: 1200px;
-    margin: 35px auto;
+    margin: 40px auto 65px;
+}
+
+.hero-destacado {
+    display: flex;
+    min-height: 390px;
+    align-items: center;
+    margin-bottom: 65px;
+    padding: 55px;
+    overflow: hidden;
+    border: 1px solid #334155;
+    border-radius: 22px;
+    background:
+        linear-gradient(90deg, rgba(8, 13, 27, 0.98), rgba(8, 13, 27, 0.35)),
+        url("imagenes/Halo Campaign Evolved.jpg") center / cover;
+}
+
+.hero-contenido {
+    max-width: 610px;
+}
+
+.etiqueta-destacada,
+.seccion-etiqueta {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #a5b4fc;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.hero-contenido h2 {
+    margin-bottom: 18px;
+    font-size: 3.7rem;
+    font-weight: bold;
+    line-height: 1.05;
+}
+
+.hero-contenido p {
+    margin-bottom: 25px;
+    color: #d6deeb;
+    font-size: 1.1rem;
+}
+
+.hero-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .introduccion {
-    text-align: center;
     margin-bottom: 35px;
+    text-align: center;
 }
 
 .introduccion h2 {
-    margin-bottom: 10px;
-    font-size: 2rem;
-}
-
-.introduccion p {
-    color: #cbd5e1;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 28px;
-    align-items: stretch;
+    margin-bottom: 8px;
+    font-size: 2.3rem;
+    font-weight: bold;
 }
 
 .tarjeta {
-    background-color: #1e293b;
-    border-radius: 12px;
+    padding: 0;
     overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.30);
-    transition: transform 0.2s;
+    background-color: #182236;
+    border: 1px solid #2d3a52;
+    border-radius: 15px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+    transition: 0.2s;
 }
 
 .tarjeta:hover {
     transform: translateY(-5px);
+    border-color: #6366f1;
 }
 
-
+.tarjeta img {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 1px solid #2d3a52;
+}
 
 .contenido {
-    padding: 20px;
+    display: flex;
+    min-height: 195px;
+    flex-direction: column;
+    padding: 22px;
 }
 
 .contenido h3 {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    font-size: 1.35rem;
+    font-weight: bold;
 }
 
 .contenido p {
-    color: #cbd5e1;
     margin-bottom: 15px;
 }
 
 .boton {
     display: inline-block;
-    background-color: #4f46e5;
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 10px 17px;
     color: white;
+    font-weight: bold;
     text-decoration: none;
-    padding: 10px 16px;
+    background-color: #4f46e5;
+    border: 1px solid #4f46e5;
     border-radius: 7px;
 }
 
 .boton:hover {
+    color: white;
     background-color: #6366f1;
+}
+
+.boton-secundario {
+    background-color: rgba(15, 23, 42, 0.75);
+    border-color: #94a3b8;
 }
 
 .precio {
     display: block;
-    font-size: 1.4rem;
-    font-weight: bold;
+    margin-top: auto;
     color: #a5b4fc;
-    margin: 15px 0;
+    font-size: 1.35rem;
+    font-weight: bold;
 }
 
 .volver {
@@ -127,105 +195,91 @@ main {
     text-align: center;
 }
 
-footer {
-    margin-top: 45px;
-    padding: 25px;
-    text-align: center;
-    background-color: #111827;
+.formulario-contenedor {
+    max-width: 850px;
+    padding: 32px;
+    background-color: #182236;
+    border: 1px solid #334155;
+    border-radius: 15px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+.form-label {
+    font-weight: bold;
+}
+
+.form-control {
+    color: white;
+    background-color: #0f172a;
+    border-color: #64748b;
+}
+
+.form-control:focus {
+    color: white;
+    background-color: #0f172a;
+    border-color: #818cf8;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+}
+
+.form-control::placeholder,
+.form-text,
+.opcional {
     color: #94a3b8;
 }
 
-@media (max-width: 600px) {
+.btn-primary {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+
+footer {
+    padding: 25px;
+    text-align: center;
+    color: #94a3b8;
+    background-color: #111827;
+    border-top: 1px solid #26334a;
+}
+
+@media (max-width: 767px) {
     header h1 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
 
-    nav a {
-        display: block;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-.tarjeta img {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-}
-
-.tarjeta {
-    overflow: hidden;
-}
-
-
-body > main > .grid .tarjeta {
-    width: 100%;
-}
-
-body > main > .grid .tarjeta:nth-child(1) {
-    grid-column: 1 / span 2;
-}
-
-body > main > .grid .tarjeta:nth-child(2) {
-    grid-column: 3 / span 2;
-}
-
-body > main > .grid .tarjeta:nth-child(3) {
-    grid-column: 5 / span 2;
-}
-
-body > main > .grid .tarjeta:nth-child(4) {
-    grid-column: 2 / span 2;
-}
-
-body > main > .grid .tarjeta:nth-child(5) {
-    grid-column: 4 / span 2;
-}
-
-body > main > .grid .tarjeta img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    object-position: center;
-}
-
-body > main > .grid .contenido {
-    padding: 24px;
-}
-
-body > main > .grid .contenido h3 {
-    font-size: 1.25rem;
-    margin-bottom: 10px;
-}
-
-body > main > .grid .contenido p {
-    min-height: 52px;
-}
-
-@media (max-width: 900px) {
-    body > main > .grid {
-        grid-template-columns: repeat(2, 1fr);
+    .hero-destacado {
+        min-height: 470px;
+        align-items: flex-end;
+        padding: 30px;
+        background:
+            linear-gradient(0deg, rgba(8, 13, 27, 0.98), rgba(8, 13, 27, 0.25)),
+            url("imagenes/Halo Campaign Evolved.jpg") center / cover;
     }
 
-    body > main > .grid .tarjeta:nth-child(n) {
-        grid-column: auto;
+    .hero-contenido h2 {
+        font-size: 2.6rem;
+    }
+
+    .tarjeta img {
+        height: 200px;
     }
 }
 
-@media (max-width: 600px) {
-    body > main > .grid {
-        grid-template-columns: 1fr;
+@media (max-width: 575px) {
+    main {
+        width: 94%;
+        margin-top: 28px;
+    }
+
+    .hero-destacado {
+        padding: 25px 20px;
+        border-radius: 16px;
+    }
+
+    .hero-acciones .boton {
+        width: 100%;
+        text-align: center;
+    }
+
+    .formulario-contenedor {
+        padding: 22px 16px;
     }
 }
