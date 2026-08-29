@@ -72,10 +72,12 @@ main {
     border-radius: 22px;
     background:
         linear-gradient(90deg, rgba(8, 13, 27, 0.98), rgba(8, 13, 27, 0.35)),
-        url("imagenes/Halo Campaign Evolved.jpg") center / cover;
+        url("../imagenes/Halo Campaign Evolved.jpg") center / cover;
 }
 
 .hero-contenido {
+    width: 100%;
+    min-width: 0;
     max-width: 610px;
 }
 
@@ -232,6 +234,141 @@ main {
     border-color: #4f46e5;
 }
 
+.enlaces-cuenta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.enlace-boton {
+    margin: 3px 5px;
+    padding: 8px 12px;
+    color: #cbd5e1;
+    background: none;
+    border: 0;
+    border-radius: 6px;
+}
+
+.enlace-boton:hover {
+    color: white;
+    background-color: #4f46e5;
+}
+
+.boton-carrito {
+    margin-top: 15px;
+}
+
+.boton:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.formulario-corto {
+    max-width: 520px;
+}
+
+.enlaces-formulario {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.enlaces-formulario a {
+    color: #a5b4fc;
+}
+
+.panel {
+    padding: 28px;
+    background-color: #182236;
+    border: 1px solid #334155;
+    border-radius: 15px;
+}
+
+.table-dark {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: #334155;
+}
+
+.cantidad-carrito,
+.stock-admin {
+    width: 75px;
+    padding: 5px;
+    color: white;
+    background-color: #0f172a;
+    border: 1px solid #64748b;
+    border-radius: 5px;
+}
+
+.total-carrito {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 18px;
+    font-size: 1.35rem;
+    border-top: 1px solid #475569;
+}
+
+.resumen-pago {
+    padding: 0;
+    list-style: none;
+}
+
+.resumen-pago li {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px 0;
+}
+
+.lista-pedidos {
+    display: grid;
+    gap: 16px;
+}
+
+.pedido {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 20px;
+    align-items: center;
+    padding: 22px;
+    background-color: #182236;
+    border: 1px solid #334155;
+    border-radius: 12px;
+}
+
+.pedido > :last-child {
+    text-align: right;
+}
+
+.estado-pedido {
+    color: #86efac;
+}
+
+.estado-vacio {
+    padding: 50px;
+    text-align: center;
+    background-color: #182236;
+    border-radius: 12px;
+}
+
+.aviso-flotante {
+    position: fixed;
+    z-index: 1100;
+    right: 20px;
+    bottom: 20px;
+    max-width: 380px;
+}
+
+.menu-admin {
+    justify-content: center;
+}
+
+.form-select {
+    color: white;
+    background-color: #0f172a;
+    border-color: #64748b;
+}
+
 footer {
     padding: 25px;
     text-align: center;
@@ -251,27 +388,84 @@ footer {
         padding: 30px;
         background:
             linear-gradient(0deg, rgba(8, 13, 27, 0.98), rgba(8, 13, 27, 0.25)),
-            url("imagenes/Halo Campaign Evolved.jpg") center / cover;
+            url("../imagenes/Halo Campaign Evolved.jpg") center / cover;
     }
 
     .hero-contenido h2 {
-        font-size: 2.6rem;
+        font-size: 2.4rem;
+        overflow-wrap: anywhere;
     }
 
     .tarjeta img {
         height: 200px;
     }
+
+    .pedido {
+        grid-template-columns: 1fr;
+    }
+
+    .pedido > :last-child {
+        text-align: left;
+    }
+
+    .enlaces-cuenta {
+        justify-content: center;
+    }
 }
 
 @media (max-width: 575px) {
+    header {
+        padding-inline: 15px;
+    }
+
+    header h1 {
+        font-size: 1.8rem;
+        overflow-wrap: anywhere;
+    }
+
+    nav .container {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .navbar-brand {
+        width: 100%;
+        margin-right: 0;
+        text-align: center;
+    }
+
+    .navbar-nav {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 0 auto !important;
+    }
+
+    .navbar-nav > .enlaces-cuenta {
+        width: 100%;
+        justify-content: center;
+    }
+
+    nav a,
+    .enlace-boton {
+        margin: 2px;
+        padding: 6px 7px;
+        font-size: 0.9rem;
+    }
+
     main {
-        width: 94%;
+        width: calc(100% - 24px);
         margin-top: 28px;
     }
 
     .hero-destacado {
         padding: 25px 20px;
         border-radius: 16px;
+    }
+
+    .hero-contenido h2 {
+        font-size: 2.15rem;
     }
 
     .hero-acciones .boton {
@@ -281,5 +475,9 @@ footer {
 
     .formulario-contenedor {
         padding: 22px 16px;
+    }
+
+    .panel {
+        padding: 20px 14px;
     }
 }

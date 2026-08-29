@@ -77,14 +77,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (clave === "") {
             return mostrarError(campos.clave, "La contraseña es obligatoria.");
         }
-        if (clave.length < 6 || clave.length > 18) {
-            return mostrarError(campos.clave, "La contraseña debe tener entre 6 y 18 caracteres.");
+        if (clave.length < 8 || clave.length > 18) {
+            return mostrarError(campos.clave, "La contraseña debe tener entre 8 y 18 caracteres.");
         }
         if (!/[A-Z]/.test(clave)) {
             return mostrarError(campos.clave, "La contraseña debe contener al menos una letra mayúscula.");
         }
         if (!/[0-9]/.test(clave)) {
             return mostrarError(campos.clave, "La contraseña debe contener al menos un número.");
+        }
+        if (!/[a-z]/.test(clave)) {
+            return mostrarError(campos.clave, "La contraseña debe contener una letra minúscula.");
+        }
+        if (!/[^A-Za-z0-9]/.test(clave)) {
+            return mostrarError(campos.clave, "La contraseña debe contener un símbolo.");
         }
         return marcarValido(campos.clave);
     }
@@ -150,7 +156,27 @@ document.addEventListener("DOMContentLoaded", () => {
         mensajeExito.classList.add("d-none");
 
         if (validarFormulario()) {
+            const usuarios = PixelForge.leer(PixelForge.claves.usuarios, []);
+            const correo = campos.correo.value.trim().toLowerCase();
+            const usuario = campos.usuario.value.trim().toLowerCase();
+            if (usuarios.some((item) => item.correo.toLowerCase() === correo)) {
+                mostrarError(campos.correo, "Este correo ya está registrado.");
+                campos.correo.focus();
+                return;
+            }
+            if (usuarios.some((item) => item.usuario.toLowerCase() === usuario)) {
+                mostrarError(campos.usuario, "Este nombre de usuario ya existe.");
+                campos.usuario.focus();
+                return;
+            }
+            usuarios.push({
+                id: Date.now(), nombre: campos.nombre.value.trim(), usuario: campos.usuario.value.trim(),
+                correo, clave: campos.clave.value, fecha: campos.fecha.value,
+                direccion: campos.direccion.value.trim(), rol: "cliente", activo: true
+            });
+            PixelForge.guardar(PixelForge.claves.usuarios, usuarios);
             mensajeExito.classList.remove("d-none");
+            mensajeExito.textContent = "Registro completado. Ya puedes iniciar sesión con tu nueva cuenta.";
             mensajeExito.scrollIntoView({ behavior: "smooth", block: "center" });
         } else {
             formulario.querySelector(".is-invalid")?.focus();
