@@ -1,0 +1,4 @@
+{% extends 'tienda/base.html' %}
+{% block title %}Eliminar {{ tipo }} - PixelForge{% endblock %}
+{% block content %}<section class="formulario-contenedor formulario-corto mx-auto text-center"><h1>Confirmar eliminación</h1><p>¿Seguro que deseas eliminar {{ tipo }} <strong>{{ objeto }}</strong>?</p><p class="text-warning">Esta acción no se puede deshacer.</p><form method="post" class="d-flex justify-content-center gap-2">{% csrf_token %}<button class="btn btn-danger" type="submit">Sí, eliminar</button><a class="btn btn-outline-light" href="javascript:history.back()">Cancelar</a></form></section>{% endblock %}
+

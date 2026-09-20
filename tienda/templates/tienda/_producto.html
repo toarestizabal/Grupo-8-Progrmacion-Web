@@ -1,0 +1,25 @@
+{% load static moneda %}
+<article class="col-12 col-md-6 col-lg-4">
+    <div class="tarjeta h-100">
+        <img src="{% static 'tienda/images/'|add:producto.imagen %}" alt="Portada de {{ producto.nombre }}">
+        <div class="contenido">
+            <span class="seccion-etiqueta">{{ producto.categoria.nombre }}</span>
+            <h3>{{ producto.nombre }}</h3>
+            <p>{{ producto.descripcion }}</p>
+            <span class="precio">{{ producto.precio|clp }}</span>
+            <small class="stock {% if producto.inventario.stock < 5 %}stock-bajo{% endif %}">
+                {% if producto.inventario.stock %}{{ producto.inventario.stock }} unidades disponibles{% else %}Sin stock{% endif %}
+            </small>
+            {% if producto.inventario.stock > 0 %}
+                {% if user.is_authenticated and user.es_cliente %}
+                    <form method="post" action="{% url 'tienda:agregar_carrito' producto.id %}" class="mt-3">
+                        {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button class="boton boton-carrito" type="submit">Agregar al carrito</button>
+                    </form>
+                {% elif not user.is_authenticated %}
+                    <a class="boton boton-carrito" href="{% url 'tienda:login' %}?next={{ request.path|urlencode }}">Ingresa para comprar</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</article>

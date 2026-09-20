@@ -1,0 +1,5 @@
+{% extends 'tienda/base.html' %}
+{% load moneda %}
+{% block title %}Mis compras - PixelForge{% endblock %}
+{% block header %}<header><h1>Mis compras</h1><p>Seguimiento de los pedidos asociados a tu cuenta</p></header>{% endblock %}
+{% block content %}<section class="lista-pedidos">{% for pedido in pedidos %}<article class="pedido"><div><strong>Pedido #{{ pedido.id }}</strong><br><small>{{ pedido.fecha|date:'d-m-Y H:i' }}</small></div><div>{% for detalle in pedido.detalles.all %}{{ detalle.cantidad }} × {{ detalle.nombre_producto }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div><div><strong>{{ pedido.total|clp }}</strong><br><span class="estado-pedido">{{ pedido.get_estado_display }}</span></div></article>{% empty %}<p class="estado-vacio">Todavía no tienes compras registradas.</p>{% endfor %}</section>{% endblock %}

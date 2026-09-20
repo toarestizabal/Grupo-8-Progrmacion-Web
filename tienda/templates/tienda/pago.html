@@ -1,0 +1,12 @@
+{% extends 'tienda/base.html' %}
+{% load moneda %}
+{% block title %}Pago simulado - PixelForge{% endblock %}
+{% block header %}<header><h1>Finalizar compra</h1><p>Simulación académica: no se realiza ningún cobro real</p></header>{% endblock %}
+{% block content %}
+<div class="row g-4"><section class="col-12 col-lg-7"><form method="post" class="formulario-contenedor" novalidate>{% csrf_token %}<h2 class="mb-4">Datos de despacho y pago</h2>
+    <div class="alert alert-warning">No ingreses datos bancarios reales. Esta pantalla solamente simula el pago.</div>
+    {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+    <div class="row g-3">{% for field in form %}{% include 'tienda/_campo.html' with clase='col-12' %}{% endfor %}<div class="col-12"><button class="btn btn-primary w-100" type="submit">Simular pago</button></div></div>
+</form></section>
+<aside class="col-12 col-lg-5"><div class="panel"><h2>Resumen</h2><ul class="resumen-pago">{% for item in items %}<li><span>{{ item.cantidad }} × {{ item.producto.nombre }}</span><strong>{{ item.subtotal|clp }}</strong></li>{% endfor %}</ul><div class="total-carrito"><span>Total</span><strong>{{ carrito.total|clp }}</strong></div></div></aside></div>
+{% endblock %}

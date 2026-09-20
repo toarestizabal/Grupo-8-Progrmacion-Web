@@ -1,0 +1,14 @@
+{% extends 'tienda/base.html' %}
+{% load moneda %}
+{% block title %}Administración - PixelForge{% endblock %}
+{% block header %}<header><h1>Administración</h1><p>Panel de control de PixelForge Games</p>{% include 'tienda/admin/_nav.html' %}</header>{% endblock %}
+{% block content %}
+<section class="row g-4 mb-4">
+    <div class="col-6 col-lg-3"><div class="indicador"><span>Productos</span><strong>{{ productos }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="indicador"><span>Clientes</span><strong>{{ clientes }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="indicador"><span>Pedidos</span><strong>{{ pedidos }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="indicador"><span>Ventas</span><strong>{{ ventas|clp }}</strong></div></div>
+</section>
+<div class="row g-4"><section class="col-12 col-lg-6"><div class="panel h-100"><h2>Stock bajo</h2><ul class="lista-simple">{% for item in stock_bajo %}<li><span>{{ item.producto.nombre }}</span><strong>{{ item.stock }} unidades</strong></li>{% empty %}<li>No hay productos con stock bajo.</li>{% endfor %}</ul></div></section>
+<section class="col-12 col-lg-6"><div class="panel h-100"><h2>Últimos pedidos</h2><ul class="lista-simple">{% for pedido in ultimos_pedidos %}<li><span>#{{ pedido.id }} · {{ pedido.usuario.username }}</span><strong>{{ pedido.get_estado_display }}</strong></li>{% empty %}<li>No existen pedidos todavía.</li>{% endfor %}</ul></div></section></div>
+{% endblock %}

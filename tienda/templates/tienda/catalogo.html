@@ -1,0 +1,15 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}{% if categoria_actual %}{{ categoria_actual.nombre }}{% else %}Catálogo{% endif %} - PixelForge{% endblock %}
+{% block header %}<header><h1>{% if categoria_actual %}{{ categoria_actual.nombre }}{% else %}Catálogo{% endif %}</h1><p>{% if categoria_actual %}{{ categoria_actual.descripcion }}{% else %}Todos nuestros videojuegos{% endif %}</p></header>{% endblock %}
+{% block content %}
+<form class="buscador row g-2 mb-4" method="get" role="search">
+    <div class="col-12 col-md-9"><label class="visually-hidden" for="q">Buscar juego</label><input class="form-control" id="q" name="q" value="{{ consulta }}" placeholder="Buscar por nombre o descripción"></div>
+    <div class="col-12 col-md-3"><button class="btn btn-primary w-100" type="submit">Buscar</button></div>
+</form>
+<section class="row g-4">
+    {% for producto in productos %}{% include 'tienda/_producto.html' %}
+    {% empty %}<p class="estado-vacio">No encontramos productos con esos criterios.</p>{% endfor %}
+</section>
+{% endblock %}
+

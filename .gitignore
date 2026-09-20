@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+staticfiles/
+.idea/
+.vscode/
+*.zip
+*.rar
+semana 6/
+legacy_frontend/

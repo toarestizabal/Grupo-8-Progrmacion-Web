@@ -1,0 +1,5 @@
+{% extends 'tienda/base.html' %}
+{% block title %}{{ titulo }} - PixelForge{% endblock %}
+{% block header %}<header><h1>{{ titulo }}</h1><p>Administración segura de cuentas</p>{% include 'tienda/admin/_nav.html' %}</header>{% endblock %}
+{% block content %}<section class="formulario-contenedor mx-auto"><form method="post" novalidate>{% csrf_token %}{% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}<div class="row g-3">{% for field in form %}{% include 'tienda/_campo.html' with clase='col-12 col-md-6' %}{% endfor %}<div class="col-12 d-flex justify-content-end gap-2"><a class="btn btn-outline-light" href="{% url 'tienda:admin_usuarios' %}">Cancelar</a><button class="btn btn-primary" type="submit">Guardar</button></div></div></form></section>{% endblock %}
+

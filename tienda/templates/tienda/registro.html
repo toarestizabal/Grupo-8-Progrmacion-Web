@@ -1,0 +1,22 @@
+{% extends 'tienda/base.html' %}
+{% block title %}Registro - PixelForge{% endblock %}
+{% block header %}<header><h1>Registro de compradores</h1><p>Únete a PixelForge Games</p></header>{% endblock %}
+{% block content %}
+<section class="introduccion"><h2>Crea tu cuenta</h2><p>Completa tus datos para comprar y revisar tus pedidos.</p></section>
+<section class="formulario-contenedor mx-auto">
+    <h3 class="mb-4">Datos personales</h3>
+    <form method="post" novalidate>{% csrf_token %}
+        {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+        <div class="row g-3">
+            {% for field in form %}
+                {% include 'tienda/_campo.html' with clase='col-12 col-md-6' %}
+            {% endfor %}
+            <div class="col-12 d-flex flex-column flex-sm-row gap-3 justify-content-end mt-4">
+                <button type="reset" class="btn btn-outline-light">Limpiar formulario</button>
+                <button type="submit" class="btn btn-primary">Crear cuenta</button>
+            </div>
+        </div>
+    </form>
+</section>
+{% endblock %}
+

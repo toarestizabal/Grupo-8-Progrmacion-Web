@@ -1,0 +1,4 @@
+{% extends 'tienda/base.html' %}
+{% block title %}Error {{ codigo }} - PixelForge{% endblock %}
+{% block content %}<section class="estado-vacio"><h1>{{ codigo }}</h1><p>{{ mensaje }}</p><a class="boton mt-3" href="{% url 'tienda:inicio' %}">Volver al inicio</a></section>{% endblock %}
+

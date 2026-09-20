@@ -1,0 +1,16 @@
+{% extends 'tienda/base.html' %}
+{% block title %}Ingresar - PixelForge{% endblock %}
+{% block header %}<header><h1>Iniciar sesión</h1><p>Accede de forma segura a tu cuenta</p></header>{% endblock %}
+{% block content %}
+<section class="formulario-contenedor formulario-corto mx-auto">
+    <h2 class="mb-4">Ingresa tus datos</h2>
+    <form method="post" novalidate>{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+        {% for field in form %}<div class="mb-3">{% include 'tienda/_campo.html' %}</div>{% endfor %}
+        <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="mostrarClave" data-toggle-password="id_password"><label class="form-check-label" for="mostrarClave">Mostrar contraseña</label></div>
+        <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+        <div class="enlaces-formulario"><a href="{% url 'tienda:password_reset' %}">Olvidé mi contraseña</a><a href="{% url 'tienda:registro' %}">Crear una cuenta</a></div>
+    </form>
+</section>
+{% endblock %}
+
