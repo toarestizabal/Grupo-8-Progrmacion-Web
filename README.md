@@ -1,6 +1,6 @@
 # PixelForge Games
 
-Proyecto grupal de Programación Web. Es una tienda de videojuegos desarrollada con Django y Oracle 19c.
+Es una tienda de videojuegos desarrollada con Django y Oracle 19c.
 
 La aplicación permite registrar clientes, iniciar sesión, recuperar la contraseña, modificar el perfil, comprar mediante un carrito y revisar pedidos. El administrador puede gestionar productos, inventario, usuarios y estados de pedidos. El pago es solamente una simulación.
 
