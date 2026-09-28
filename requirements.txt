@@ -1,4 +1,6 @@
 Django>=5.2,<5.3
+djangorestframework>=3.16,<3.17
 oracledb>=3.4,<4
+Pillow>=11,<13
 python-dotenv>=1,<2
 

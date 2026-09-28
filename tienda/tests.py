@@ -1,9 +1,11 @@
 from datetime import date
 from decimal import Decimal
+import re
 
 from django.core import mail
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+from unittest.mock import patch
 
 from .models import (
     Carrito,
@@ -85,7 +87,7 @@ class PixelForgeTestCase(TestCase):
         self.assertRedirects(respuesta, reverse("tienda:inicio"))
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.cliente.pk)
 
-    def test_recuperacion_genera_enlace_con_token(self):
+    def test_recuperacion_completa_cambia_clave_y_permite_login(self):
         respuesta = self.client.post(
             reverse("tienda:password_reset"),
             {"email": self.cliente.email},
@@ -93,6 +95,30 @@ class PixelForgeTestCase(TestCase):
         self.assertRedirects(respuesta, reverse("tienda:password_reset_done"))
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("/cuenta/recuperar/", mail.outbox[0].body)
+
+        coincidencia = re.search(
+            r"https?://[^/]+(?P<ruta>/cuenta/recuperar/\S+)",
+            mail.outbox[0].body,
+        )
+        self.assertIsNotNone(coincidencia)
+        abrir_enlace = self.client.get(coincidencia.group("ruta"))
+        self.assertEqual(abrir_enlace.status_code, 302)
+
+        nueva_clave = "NuevaClave456!"
+        cambiar = self.client.post(
+            abrir_enlace.url,
+            {"new_password1": nueva_clave, "new_password2": nueva_clave},
+        )
+        self.assertRedirects(cambiar, reverse("tienda:password_reset_complete"))
+
+        self.cliente.refresh_from_db()
+        self.assertTrue(self.cliente.check_password(nueva_clave))
+        iniciar = self.client.post(
+            reverse("tienda:login"),
+            {"identificador": self.cliente.email, "password": nueva_clave},
+        )
+        self.assertRedirects(iniciar, reverse("tienda:inicio"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), self.cliente.pk)
 
     def test_rutas_internas_exigen_autenticacion(self):
         for nombre in ("tienda:perfil", "tienda:carrito", "tienda:mis_compras", "tienda:admin_dashboard"):
@@ -124,6 +150,45 @@ class PixelForgeTestCase(TestCase):
         self.assertRedirects(respuesta, reverse("tienda:perfil"))
         self.cliente.refresh_from_db()
         self.assertEqual(self.cliente.nombre_completo, "Nombre Actualizado")
+
+    def test_perfil_rechaza_fecha_futura(self):
+        self.client.force_login(self.cliente)
+        respuesta = self.client.post(
+            reverse("tienda:perfil"),
+            {
+                "nombre_completo": self.cliente.nombre_completo,
+                "username": self.cliente.username,
+                "email": self.cliente.email,
+                "fecha_nacimiento": "2999-01-01",
+                "direccion": self.cliente.direccion,
+                "clave_nueva1": "",
+                "clave_nueva2": "",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "La fecha de nacimiento no puede estar en el futuro.")
+        self.cliente.refresh_from_db()
+        self.assertEqual(self.cliente.fecha_nacimiento, date(1995, 5, 10))
+
+    def test_perfil_rechaza_usuario_menor_de_13(self):
+        self.client.force_login(self.cliente)
+        hoy = date.today()
+        respuesta = self.client.post(
+            reverse("tienda:perfil"),
+            {
+                "nombre_completo": self.cliente.nombre_completo,
+                "username": self.cliente.username,
+                "email": self.cliente.email,
+                "fecha_nacimiento": f"{hoy.year - 10:04d}-{hoy.month:02d}-{hoy.day:02d}",
+                "direccion": self.cliente.direccion,
+                "clave_nueva1": "",
+                "clave_nueva2": "",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "Debes tener al menos 13 años.")
+        self.cliente.refresh_from_db()
+        self.assertEqual(self.cliente.fecha_nacimiento, date(1995, 5, 10))
 
     def test_administrador_realiza_crud_de_productos(self):
         self.client.force_login(self.admin)
@@ -216,3 +281,28 @@ class PixelForgeTestCase(TestCase):
         usuario = Usuario.objects.get(username="administrado")
         self.client.post(reverse("tienda:admin_usuario_eliminar", args=(usuario.pk,)))
         self.assertFalse(Usuario.objects.filter(pk=usuario.pk).exists())
+
+
+class ConsumoServicioExternoTests(SimpleTestCase):
+    @patch("tienda.views.obtener_juegos_externos")
+    def test_endpoint_publico_entrega_juegos_en_json(self, obtener_juegos):
+        obtener_juegos.return_value = [
+            {
+                "id": 1,
+                "titulo": "Juego externo",
+                "descripcion": "Obtenido desde un servicio público.",
+                "genero": "Acción",
+                "plataforma": "PC",
+                "editor": "Estudio",
+                "imagen": "https://example.com/juego.jpg",
+                "enlace": "https://www.freetogame.com/juego-externo",
+            }
+        ]
+        respuesta = self.client.get(reverse("tienda:juegos_externos"))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()["resultados"][0]["titulo"], "Juego externo")
+
+    def test_pagina_explorador_incluye_endpoint_para_fetch(self):
+        respuesta = self.client.get(reverse("tienda:explorar_juegos"))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, reverse("tienda:juegos_externos"))

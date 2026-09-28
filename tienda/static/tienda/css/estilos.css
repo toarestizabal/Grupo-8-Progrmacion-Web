@@ -263,6 +263,30 @@ main {
     opacity: 0.55;
 }
 
+.tarjeta-externa .contenido {
+    min-height: 310px;
+}
+
+.tarjeta-externa .contenido h2 {
+    margin-bottom: 8px;
+    font-size: 1.35rem;
+    font-weight: bold;
+}
+
+.tarjeta-externa .contenido p {
+    margin-bottom: 9px;
+}
+
+.fuente-externa {
+    margin-top: 32px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.fuente-externa a {
+    color: #a5b4fc;
+}
+
 .formulario-corto {
     max-width: 520px;
 }

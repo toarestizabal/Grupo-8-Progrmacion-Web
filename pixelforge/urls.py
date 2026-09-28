@@ -4,6 +4,7 @@ from django.urls import include, path, reverse_lazy
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
+    path("api/", include("rest_api.urls")),
     # Alias global requerido por el correo estándar de recuperación de Django.
     path(
         "cuenta/recuperar/<uidb64>/<token>/",

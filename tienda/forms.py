@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 
 from .models import Inventario, Pedido, Producto, Rol, Usuario
+from .validators import validar_fecha_nacimiento
 
 
 class BootstrapFormMixin:
@@ -66,16 +67,7 @@ class RegistroForm(BootstrapFormMixin, UserCreationForm):
         return email
 
     def clean_fecha_nacimiento(self):
-        nacimiento = self.cleaned_data.get("fecha_nacimiento")
-        if not nacimiento:
-            raise ValidationError("La fecha de nacimiento es obligatoria.")
-        hoy = date.today()
-        edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
-        if nacimiento > hoy:
-            raise ValidationError("La fecha de nacimiento no puede estar en el futuro.")
-        if edad < 13:
-            raise ValidationError("Debes tener al menos 13 años para registrarte.")
-        return nacimiento
+        return validar_fecha_nacimiento(self.cleaned_data.get("fecha_nacimiento"))
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
@@ -140,6 +132,9 @@ class PerfilForm(BootstrapFormMixin, forms.ModelForm):
         if Usuario.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise ValidationError("Ya existe otra cuenta con este correo.")
         return email
+
+    def clean_fecha_nacimiento(self):
+        return validar_fecha_nacimiento(self.cleaned_data.get("fecha_nacimiento"))
 
     def clean(self):
         cleaned = super().clean()
@@ -265,6 +260,9 @@ class UsuarioAdminForm(BootstrapFormMixin, forms.ModelForm):
         if Usuario.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise ValidationError("Ya existe otra cuenta con este correo.")
         return email
+
+    def clean_fecha_nacimiento(self):
+        return validar_fecha_nacimiento(self.cleaned_data.get("fecha_nacimiento"))
 
     def clean_nueva_clave(self):
         clave = self.cleaned_data.get("nueva_clave")

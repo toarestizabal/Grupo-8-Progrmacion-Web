@@ -6,11 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.db.models.deletion import ProtectedError
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from .decorators import administrador_requerido, cliente_requerido
 from .forms import (
@@ -35,6 +35,7 @@ from .models import (
     Rol,
     Usuario,
 )
+from .services import ServicioExternoError, obtener_juegos_externos
 
 
 def inicio(request):
@@ -64,6 +65,25 @@ def catalogo(request, slug=None):
             "categoria_actual": categoria,
             "consulta": consulta,
         },
+    )
+
+
+def explorar_juegos(request):
+    return render(request, "tienda/explorar_juegos.html")
+
+
+@require_GET
+def juegos_externos(request):
+    try:
+        juegos = obtener_juegos_externos()
+    except ServicioExternoError as error:
+        return JsonResponse({"detalle": str(error)}, status=502)
+    return JsonResponse(
+        {
+            "resultados": juegos,
+            "fuente": "FreeToGame",
+            "actualizacion_segundos": 900,
+        }
     )
 
 

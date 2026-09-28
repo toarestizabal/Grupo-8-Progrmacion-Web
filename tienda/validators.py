@@ -1,7 +1,25 @@
 import re
+from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+
+
+def validar_fecha_nacimiento(nacimiento):
+    """Aplica la misma regla de edad en registro, perfil y administración."""
+    if not nacimiento:
+        raise ValidationError("La fecha de nacimiento es obligatoria.")
+
+    hoy = date.today()
+    if nacimiento > hoy:
+        raise ValidationError("La fecha de nacimiento no puede estar en el futuro.")
+
+    edad = hoy.year - nacimiento.year - (
+        (hoy.month, hoy.day) < (nacimiento.month, nacimiento.day)
+    )
+    if edad < 13:
+        raise ValidationError("Debes tener al menos 13 años.")
+    return nacimiento
 
 
 class ComplexityValidator:

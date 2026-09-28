@@ -20,6 +20,9 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     "tienda.apps.TiendaConfig",
+    "rest_api.apps.RestApiConfig",
+    "rest_framework",
+    "rest_framework.authtoken",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -100,3 +103,17 @@ DEFAULT_FROM_EMAIL = "no-responder@pixelforge.cl"
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/minute",
+    },
+}

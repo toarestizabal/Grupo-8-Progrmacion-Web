@@ -26,4 +26,90 @@ document.addEventListener("DOMContentLoaded", () => {
         campo.addEventListener("input", formatearVencimiento);
         formatearVencimiento();
     });
+
+    const catalogoExterno = document.querySelector("[data-catalogo-externo]");
+    if (catalogoExterno) {
+        const lista = catalogoExterno.querySelector("[data-lista-juegos]");
+        const estado = catalogoExterno.querySelector("[data-estado-juegos]");
+        const botonRecargar = document.querySelector("[data-recargar-juegos]");
+
+        const crearTexto = (etiqueta, valor) => {
+            const linea = document.createElement("p");
+            const fuerte = document.createElement("strong");
+            fuerte.textContent = `${etiqueta}: `;
+            linea.append(fuerte, document.createTextNode(valor || "No informado"));
+            return linea;
+        };
+
+        const crearTarjeta = (juego) => {
+            const columna = document.createElement("article");
+            columna.className = "col-12 col-md-6 col-lg-4";
+
+            const tarjeta = document.createElement("div");
+            tarjeta.className = "tarjeta tarjeta-externa h-100";
+
+            if (juego.imagen) {
+                const imagen = document.createElement("img");
+                imagen.src = juego.imagen;
+                imagen.alt = `Portada de ${juego.titulo}`;
+                imagen.loading = "lazy";
+                tarjeta.append(imagen);
+            }
+
+            const contenido = document.createElement("div");
+            contenido.className = "contenido";
+            const titulo = document.createElement("h2");
+            titulo.textContent = juego.titulo;
+            const descripcion = document.createElement("p");
+            descripcion.textContent = juego.descripcion || "Sin descripción disponible.";
+            contenido.append(
+                titulo,
+                descripcion,
+                crearTexto("Género", juego.genero),
+                crearTexto("Plataforma", juego.plataforma)
+            );
+
+            if (juego.enlace) {
+                const enlace = document.createElement("a");
+                enlace.className = "boton";
+                enlace.href = juego.enlace;
+                enlace.target = "_blank";
+                enlace.rel = "noopener noreferrer";
+                enlace.textContent = "Ver ficha externa";
+                contenido.append(enlace);
+            }
+
+            tarjeta.append(contenido);
+            columna.append(tarjeta);
+            return columna;
+        };
+
+        const cargarJuegos = async () => {
+            catalogoExterno.setAttribute("aria-busy", "true");
+            estado.hidden = false;
+            estado.className = "estado-servicio text-center";
+            estado.textContent = "Cargando recomendaciones…";
+            lista.replaceChildren();
+            if (botonRecargar) botonRecargar.disabled = true;
+
+            try {
+                const respuesta = await fetch(catalogoExterno.dataset.endpoint, {
+                    headers: { Accept: "application/json" },
+                });
+                const datos = await respuesta.json();
+                if (!respuesta.ok) throw new Error(datos.detalle || "No fue posible cargar los juegos.");
+                datos.resultados.forEach((juego) => lista.append(crearTarjeta(juego)));
+                estado.hidden = true;
+            } catch (error) {
+                estado.className = "alert alert-danger";
+                estado.textContent = error.message;
+            } finally {
+                catalogoExterno.setAttribute("aria-busy", "false");
+                if (botonRecargar) botonRecargar.disabled = false;
+            }
+        };
+
+        botonRecargar?.addEventListener("click", cargarJuegos);
+        cargarJuegos();
+    }
 });

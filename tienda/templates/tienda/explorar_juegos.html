@@ -1,0 +1,32 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Explorar juegos | PixelForge{% endblock %}
+
+{% block content %}
+<section class="introduccion">
+    <span class="seccion-etiqueta">SERVICIO EXTERNO</span>
+    <h1>Explorar juegos</h1>
+    <p>Recomendaciones obtenidas desde una API pública, sin recargar la página.</p>
+    <button class="btn btn-outline-light mt-2" type="button" data-recargar-juegos>Actualizar resultados</button>
+</section>
+
+<div
+    data-catalogo-externo
+    data-endpoint="{% url 'tienda:juegos_externos' %}"
+    aria-live="polite"
+    aria-busy="true"
+>
+    <p class="estado-servicio text-center" data-estado-juegos>Cargando recomendaciones…</p>
+    <section class="row g-4" data-lista-juegos></section>
+</div>
+
+<p class="fuente-externa">
+    Información proporcionada por
+    <a href="https://www.freetogame.com/" target="_blank" rel="noopener noreferrer">FreeToGame</a>.
+    Este catálogo es informativo y no corresponde a productos vendidos por PixelForge.
+</p>
+
+<noscript>
+    <div class="alert alert-warning">Activa JavaScript para cargar el catálogo externo sin recargar la página.</div>
+</noscript>
+{% endblock %}
