@@ -9,6 +9,12 @@ urlpatterns = [
     path("", views.inicio, name="inicio"),
     path("catalogo/", views.catalogo, name="catalogo"),
     path("categoria/<slug:slug>/", views.catalogo, name="catalogo_categoria"),
+    path("producto/<int:producto_id>/", views.producto_detalle, name="producto_detalle"),
+    path(
+        "servicios/productos/<int:producto_id>/informacion/",
+        views.informacion_externa_producto,
+        name="informacion_externa_producto",
+    ),
     path("explorar-juegos/", views.explorar_juegos, name="explorar_juegos"),
     path("servicios/juegos/", views.juegos_externos, name="juegos_externos"),
     path("cuenta/registro/", views.registro, name="registro"),

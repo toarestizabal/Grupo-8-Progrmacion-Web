@@ -4,7 +4,7 @@ Es una tienda de videojuegos desarrollada con Django y Oracle 19c.
 
 La aplicación permite registrar clientes, iniciar sesión, recuperar la contraseña, modificar el perfil, comprar mediante un carrito y revisar pedidos. El administrador puede gestionar productos, inventario, usuarios y estados de pedidos. El pago es solamente una simulación.
 
-También incluye una API REST propia para categorías y una sección que consulta recomendaciones desde FreeToGame sin recargar la página.
+También incluye dos API REST propias, una para categorías y otra para productos. La tienda consulta servicios públicos para mostrar recomendaciones, información de cada producto y sus tráileres sin recargar la página.
 
 Repositorio: https://github.com/toarestizabal/Grupo-8-Progrmacion-Web
 
@@ -13,7 +13,7 @@ Repositorio: https://github.com/toarestizabal/Grupo-8-Progrmacion-Web
 - Python 3.10 o superior.
 - Oracle Database 19c con la base `ORCLPDB` disponible.
 
-El proyecto utiliza `oracledb`, el controlador actual de Oracle para Python y Django, en lugar del paquete antiguo `cx_Oracle` mencionado en la guía.
+
 
 ## Cómo ejecutar el proyecto
 
@@ -59,17 +59,42 @@ La API usa autenticación por token. Para obtener uno se envían `username` y `p
 http://127.0.0.1:8000/api/token/
 ```
 
+Por ejemplo, el cuerpo JSON para una cuenta administradora es:
+
+```json
+{
+  "username": "admin",
+  "password": "Admin123!"
+}
+```
+
+La respuesta contiene el token y su fecha de vencimiento en `expira_en`. Cada token dura 24 horas; el plazo puede cambiarse con `API_TOKEN_TTL_HOURS` en `.env`. Si vence, se repite la misma solicitud y se recibe uno nuevo. Solicitar un token nuevo invalida el anterior.
+
 El CRUD de categorías está en:
 
 ```text
 http://127.0.0.1:8000/api/categorias/
 ```
 
-Admite `GET`, `POST`, `PUT`, `PATCH` y `DELETE`. Todos los accesos requieren token; los clientes pueden consultar y solamente los administradores pueden modificar. Los filtros disponibles son `?activa=true` y `?buscar=texto`.
+El CRUD de productos está en:
+
+```text
+http://127.0.0.1:8000/api/productos/
+```
+
+Ambas API admiten `GET`, `POST`, `PUT`, `PATCH` y `DELETE`. Todos los accesos requieren token; los clientes pueden consultar y solamente los administradores pueden modificar. Categorías permite filtrar con `?activa=true` y `?buscar=texto`. Productos permite usar `?activo=true`, `?categoria=slug`, `?en_stock=true` y `?buscar=texto`.
 
 En las solicitudes se usa la cabecera `Authorization: Token <token>`. En un despliegue real esta autenticación debe utilizarse mediante HTTPS.
 
-La página `http://127.0.0.1:8000/explorar-juegos/` consume el servicio público FreeToGame mediante JavaScript y muestra los resultados sin recargarla.
+Para revocar el token antes de su vencimiento se envía un `POST` a:
+
+```text
+http://127.0.0.1:8000/api/token/revocar/
+```
+
+Esta solicitud también debe incluir la cabecera `Authorization: Token <token>`. El procedimiento puede realizarse desde Postman sin modificar el código del proyecto.
+
+La página `http://127.0.0.1:8000/explorar-juegos/` consume FreeToGame mediante JavaScript. Además, el botón **Ver detalles** de cada producto abre una ficha interna que combina información de Steam Store o Wikidata con un tráiler consultado mediante YouTube oEmbed. Los diez productos tienen la misma ficha y no se necesitan claves ni cuentas para utilizar estos servicios.
 
 ## Cuentas para probar
 

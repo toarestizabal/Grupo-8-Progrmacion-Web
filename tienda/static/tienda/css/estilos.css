@@ -258,6 +258,10 @@ main {
     margin-top: 15px;
 }
 
+.boton-detalle {
+    margin-top: 18px;
+}
+
 .boton:disabled {
     cursor: not-allowed;
     opacity: 0.55;
@@ -285,6 +289,99 @@ main {
 
 .fuente-externa a {
     color: #a5b4fc;
+}
+
+.detalle-producto {
+    margin-bottom: 55px;
+    padding: 30px;
+    background-color: #182236;
+    border: 1px solid #334155;
+    border-radius: 18px;
+}
+
+.detalle-producto h1 {
+    margin-bottom: 18px;
+    font-size: 2.6rem;
+    font-weight: bold;
+}
+
+.detalle-portada {
+    display: block;
+    width: 100%;
+    max-height: 430px;
+    object-fit: cover;
+    border: 1px solid #475569;
+    border-radius: 14px;
+}
+
+.detalle-descripcion {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+}
+
+.detalle-precio {
+    margin-top: 24px;
+}
+
+.detalle-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.detalle-acciones .boton {
+    margin-top: 0;
+}
+
+.detalle-externo {
+    min-height: 250px;
+}
+
+.reproductor-trailer {
+    overflow: hidden;
+    background-color: #111827;
+    border: 1px solid #334155;
+    border-radius: 15px;
+}
+
+.titulo-trailer {
+    margin: 18px 0 2px;
+    font-size: 1.35rem;
+}
+
+.canal-trailer {
+    color: #94a3b8;
+}
+
+.ficha-externa h2 {
+    margin-bottom: 12px;
+    font-size: 1.7rem;
+}
+
+.ficha-externa > p {
+    color: #cbd5e1;
+}
+
+.datos-videojuego {
+    margin: 24px 0 0;
+}
+
+.datos-videojuego div {
+    padding: 11px 0;
+    border-top: 1px solid #334155;
+}
+
+.datos-videojuego dt {
+    color: #a5b4fc;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.datos-videojuego dd {
+    margin: 2px 0 0;
+    color: #f8fafc;
 }
 
 .formulario-corto {
@@ -527,6 +624,14 @@ footer {
 
     .enlaces-cuenta {
         justify-content: center;
+    }
+
+    .detalle-producto {
+        padding: 20px;
+    }
+
+    .detalle-producto h1 {
+        font-size: 2rem;
     }
 }
 

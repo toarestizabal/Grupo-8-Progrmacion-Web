@@ -10,6 +10,7 @@
             <small class="stock {% if producto.inventario.stock < 5 %}stock-bajo{% endif %}">
                 {% if producto.inventario.stock %}{{ producto.inventario.stock }} unidades disponibles{% else %}Sin stock{% endif %}
             </small>
+            <a class="boton boton-secundario boton-detalle" href="{% url 'tienda:producto_detalle' producto.id %}">Ver detalles</a>
             {% if producto.inventario.stock > 0 %}
                 {% if user.is_authenticated and user.es_cliente %}
                     <form method="post" action="{% url 'tienda:agregar_carrito' producto.id %}" class="mt-3">

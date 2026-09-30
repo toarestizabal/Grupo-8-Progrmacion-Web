@@ -1,11 +1,13 @@
 from datetime import date
 from decimal import Decimal
 import re
+from urllib.error import URLError
 
 from django.core import mail
+from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from .models import (
     Carrito,
@@ -18,6 +20,7 @@ from .models import (
     Rol,
     Usuario,
 )
+from .services import ServicioExternoError, _solicitar_json, obtener_juegos_externos
 
 
 class PixelForgeTestCase(TestCase):
@@ -306,3 +309,94 @@ class ConsumoServicioExternoTests(SimpleTestCase):
         respuesta = self.client.get(reverse("tienda:explorar_juegos"))
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, reverse("tienda:juegos_externos"))
+
+    @patch("tienda.views.obtener_juegos_externos")
+    def test_endpoint_controla_caida_de_freetogame(self, obtener_juegos):
+        obtener_juegos.side_effect = ServicioExternoError("Servicio temporalmente no disponible.")
+        respuesta = self.client.get(reverse("tienda:juegos_externos"))
+        self.assertEqual(respuesta.status_code, 502)
+        self.assertEqual(
+            respuesta.json()["detalle"],
+            "Servicio temporalmente no disponible.",
+        )
+
+    @patch("tienda.services.urlopen", side_effect=URLError("sin conexión"))
+    def test_servicio_controla_error_de_red(self, _urlopen):
+        cache.clear()
+        with self.assertRaisesMessage(
+            ServicioExternoError,
+            "El catálogo externo no está disponible en este momento.",
+        ):
+            obtener_juegos_externos()
+
+    @patch("tienda.services.urlopen")
+    def test_servicio_controla_json_invalido(self, urlopen):
+        respuesta = MagicMock()
+        respuesta.__enter__.return_value.read.return_value = b"{json-invalido"
+        urlopen.return_value = respuesta
+        with self.assertRaisesMessage(ServicioExternoError, "Respuesta inválida."):
+            _solicitar_json("https://example.com/api", "Respuesta inválida.")
+
+
+class InformacionProductoExternaTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        categoria = Categoria.objects.create(nombre="Pruebas externas", slug="pruebas-externas")
+        cls.producto = Producto.objects.create(
+            categoria=categoria,
+            nombre="Producto con servicios externos",
+            descripcion="Producto utilizado para probar la ficha externa.",
+            precio=Decimal("25000"),
+            imagen="accion.svg",
+        )
+
+    @patch("tienda.views.obtener_informacion_producto")
+    def test_endpoint_combina_ficha_y_trailer(self, obtener_informacion):
+        obtener_informacion.return_value = {
+            "ficha": {
+                "titulo": self.producto.nombre,
+                "resumen": "Resumen externo",
+                "desarrollador": "Estudio",
+                "editor": "Editor",
+                "plataformas": "Windows",
+                "generos": "Acción",
+                "lanzamiento": "Disponible",
+                "servicio": "Steam Store",
+            },
+            "trailer": {
+                "titulo": "Tráiler oficial",
+                "canal": "Canal oficial",
+                "miniatura": "https://example.com/trailer.jpg",
+                "video": "https://www.youtube-nocookie.com/embed/abcdefghijk",
+                "servicio": "YouTube oEmbed",
+            },
+        }
+        respuesta = self.client.get(
+            reverse("tienda:informacion_externa_producto", args=(self.producto.pk,))
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.json()["ficha"]["desarrollador"], "Estudio")
+        self.assertEqual(respuesta.json()["trailer"]["canal"], "Canal oficial")
+
+    def test_detalle_producto_incluye_endpoint_para_fetch(self):
+        respuesta = self.client.get(reverse("tienda:producto_detalle", args=(self.producto.pk,)))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            reverse("tienda:informacion_externa_producto", args=(self.producto.pk,)),
+        )
+        self.assertContains(respuesta, "data-detalle-externo")
+
+    @patch("tienda.views.obtener_informacion_producto")
+    def test_endpoint_controla_caida_de_ficha_o_trailer(self, obtener_informacion):
+        obtener_informacion.side_effect = ServicioExternoError(
+            "La información externa no está disponible."
+        )
+        respuesta = self.client.get(
+            reverse("tienda:informacion_externa_producto", args=(self.producto.pk,))
+        )
+        self.assertEqual(respuesta.status_code, 502)
+        self.assertEqual(
+            respuesta.json()["detalle"],
+            "La información externa no está disponible.",
+        )

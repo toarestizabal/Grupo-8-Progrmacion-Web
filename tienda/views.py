@@ -35,7 +35,11 @@ from .models import (
     Rol,
     Usuario,
 )
-from .services import ServicioExternoError, obtener_juegos_externos
+from .services import (
+    ServicioExternoError,
+    obtener_informacion_producto,
+    obtener_juegos_externos,
+)
 
 
 def inicio(request):
@@ -66,6 +70,25 @@ def catalogo(request, slug=None):
             "consulta": consulta,
         },
     )
+
+
+def producto_detalle(request, producto_id):
+    producto = get_object_or_404(
+        Producto.objects.select_related("categoria", "inventario"),
+        pk=producto_id,
+        activo=True,
+    )
+    return render(request, "tienda/producto_detalle.html", {"producto": producto})
+
+
+@require_GET
+def informacion_externa_producto(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id, activo=True)
+    try:
+        informacion = obtener_informacion_producto(producto.nombre)
+    except ServicioExternoError as error:
+        return JsonResponse({"detalle": str(error)}, status=502)
+    return JsonResponse(informacion)
 
 
 def explorar_juegos(request):

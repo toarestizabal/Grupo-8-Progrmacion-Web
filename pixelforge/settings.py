@@ -100,13 +100,15 @@ LOGOUT_REDIRECT_URL = "tienda:inicio"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "no-responder@pixelforge.cl"
 
+API_TOKEN_TTL_HOURS = int(os.getenv("API_TOKEN_TTL_HOURS", "24"))
+
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
+        "rest_api.authentication.TokenAuthenticationConExpiracion",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",

@@ -112,4 +112,49 @@ document.addEventListener("DOMContentLoaded", () => {
         botonRecargar?.addEventListener("click", cargarJuegos);
         cargarJuegos();
     }
+
+    const detalleExterno = document.querySelector("[data-detalle-externo]");
+    if (detalleExterno) {
+        const estado = detalleExterno.querySelector("[data-estado-detalle]");
+        const contenido = detalleExterno.querySelector("[data-contenido-detalle]");
+
+        const escribir = (selector, valor) => {
+            const elemento = detalleExterno.querySelector(selector);
+            if (elemento) elemento.textContent = valor;
+        };
+
+        const cargarDetalle = async () => {
+            try {
+                const respuesta = await fetch(detalleExterno.dataset.endpoint, {
+                    headers: { Accept: "application/json" },
+                });
+                const datos = await respuesta.json();
+                if (!respuesta.ok) {
+                    throw new Error(datos.detalle || "No fue posible cargar la información.");
+                }
+
+                escribir("[data-titulo-externo]", datos.ficha.titulo);
+                escribir("[data-resumen-externo]", datos.ficha.resumen);
+                escribir("[data-desarrollador]", datos.ficha.desarrollador);
+                escribir("[data-editor]", datos.ficha.editor);
+                escribir("[data-plataformas]", datos.ficha.plataformas);
+                escribir("[data-generos]", datos.ficha.generos);
+                escribir("[data-lanzamiento]", datos.ficha.lanzamiento);
+                escribir("[data-titulo-trailer]", datos.trailer.titulo);
+                escribir("[data-canal-trailer]", datos.trailer.canal);
+
+                const reproductor = detalleExterno.querySelector("[data-video-producto]");
+                reproductor.src = datos.trailer.video;
+                contenido.hidden = false;
+                estado.hidden = true;
+            } catch (error) {
+                estado.className = "alert alert-danger";
+                estado.textContent = error.message;
+            } finally {
+                detalleExterno.setAttribute("aria-busy", "false");
+            }
+        };
+
+        cargarDetalle();
+    }
 });

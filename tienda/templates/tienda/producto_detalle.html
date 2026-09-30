@@ -1,0 +1,76 @@
+{% extends 'tienda/base.html' %}
+{% load static moneda %}
+
+{% block title %}{{ producto.nombre }} | PixelForge{% endblock %}
+
+{% block content %}
+<section class="detalle-producto row g-4 align-items-start">
+    <div class="col-12 col-lg-5">
+        <img class="detalle-portada" src="{% static 'tienda/images/'|add:producto.imagen %}" alt="Portada de {{ producto.nombre }}">
+    </div>
+    <div class="col-12 col-lg-7">
+        <span class="seccion-etiqueta">{{ producto.categoria.nombre }}</span>
+        <h1>{{ producto.nombre }}</h1>
+        <p class="detalle-descripcion">{{ producto.descripcion }}</p>
+        <span class="precio detalle-precio">{{ producto.precio|clp }}</span>
+        <small class="stock {% if producto.inventario.stock < 5 %}stock-bajo{% endif %}">
+            {% if producto.inventario.stock %}{{ producto.inventario.stock }} unidades disponibles{% else %}Sin stock{% endif %}
+        </small>
+        <div class="detalle-acciones">
+            <a class="boton boton-secundario" href="{% url 'tienda:catalogo' %}">Volver al catálogo</a>
+            {% if producto.inventario.stock > 0 %}
+                {% if user.is_authenticated and user.es_cliente %}
+                    <form method="post" action="{% url 'tienda:agregar_carrito' producto.id %}">
+                        {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button class="boton" type="submit">Agregar al carrito</button>
+                    </form>
+                {% elif not user.is_authenticated %}
+                    <a class="boton" href="{% url 'tienda:login' %}?next={{ request.path|urlencode }}">Ingresa para comprar</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section
+    class="detalle-externo"
+    data-detalle-externo
+    data-endpoint="{% url 'tienda:informacion_externa_producto' producto.id %}"
+    aria-live="polite"
+    aria-busy="true"
+>
+    <p class="estado-servicio text-center" data-estado-detalle>Cargando información y tráiler…</p>
+    <div class="row g-4" data-contenido-detalle hidden>
+        <div class="col-12 col-xl-7">
+            <div class="ratio ratio-16x9 reproductor-trailer">
+                <iframe
+                    data-video-producto
+                    title="Tráiler de {{ producto.nombre }}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen
+                ></iframe>
+            </div>
+            <h2 class="titulo-trailer" data-titulo-trailer></h2>
+            <p class="canal-trailer" data-canal-trailer></p>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div class="panel h-100 ficha-externa">
+                <h2 data-titulo-externo></h2>
+                <p data-resumen-externo></p>
+                <dl class="datos-videojuego">
+                    <div><dt>Desarrollador</dt><dd data-desarrollador></dd></div>
+                    <div><dt>Editor</dt><dd data-editor></dd></div>
+                    <div><dt>Plataformas</dt><dd data-plataformas></dd></div>
+                    <div><dt>Géneros</dt><dd data-generos></dd></div>
+                    <div><dt>Lanzamiento</dt><dd data-lanzamiento></dd></div>
+                </dl>
+            </div>
+        </div>
+    </div>
+</section>
+
+<noscript>
+    <div class="alert alert-warning">Activa JavaScript para cargar la información y el tráiler.</div>
+</noscript>
+{% endblock %}
