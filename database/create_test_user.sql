@@ -1,0 +1,31 @@
+-- PixelForge Games - esquema aislado para ejecutar la suite de pruebas
+-- Ejecutar una sola vez en SQL*Plus con una cuenta DBA:
+-- @database/create_test_user.sql
+SET SERVEROUTPUT ON
+SET VERIFY OFF
+WHENEVER SQLERROR EXIT SQL.SQLCODE
+
+ALTER SESSION SET CONTAINER = ORCLPDB;
+
+ACCEPT test_password CHAR PROMPT 'Contraseña para PIXELFORGE_TEST: ' HIDE
+
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM dba_users WHERE username = 'PIXELFORGE_TEST';
+    IF v_count = 0 THEN
+        EXECUTE IMMEDIATE 'CREATE USER PIXELFORGE_TEST IDENTIFIED BY "&test_password"';
+        DBMS_OUTPUT.PUT_LINE('Usuario PIXELFORGE_TEST creado.');
+    ELSE
+        EXECUTE IMMEDIATE 'ALTER USER PIXELFORGE_TEST IDENTIFIED BY "&test_password" ACCOUNT UNLOCK';
+        DBMS_OUTPUT.PUT_LINE('Usuario PIXELFORGE_TEST actualizado.');
+    END IF;
+END;
+/
+
+ALTER USER PIXELFORGE_TEST QUOTA UNLIMITED ON USERS;
+GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER,
+      CREATE VIEW, CREATE PROCEDURE TO PIXELFORGE_TEST;
+
+PROMPT Esquema PIXELFORGE_TEST listo. Ejecute: python manage.py test --keepdb
+EXIT

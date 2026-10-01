@@ -106,6 +106,7 @@ La página `http://127.0.0.1:8000/explorar-juegos/` consume FreeToGame mediante 
 Dentro de la carpeta `database` están:
 
 - `create_user.sql`: crea el usuario de Oracle que usa la aplicación.
+- `create_test_user.sql`: crea el esquema aislado para las pruebas automatizadas.
 - `schema.sql`: contiene la estructura de las tablas solicitada para la entrega.
 - `seed.sql`: contiene los datos iniciales en SQL.
 - `MER_PixelForge.png`: diagrama de la base de datos.
@@ -119,4 +120,29 @@ Para confirmar que Django está conectado a Oracle se puede usar:
 ```powershell
 python manage.py verify_oracle
 ```
+
+## Pruebas automatizadas
+
+Las pruebas usan el esquema aislado `PIXELFORGE_TEST`; nunca crean, borran ni
+modifican tablas de `PIXELFORGE_APP`. Se prepara una sola vez desde SQL*Plus,
+conectado como `SYSDBA`:
+
+```sql
+@database/create_test_user.sql
+```
+
+La contraseña elegida se configura en `.env` como `ORACLE_TEST_PASSWORD`.
+Después, la suite completa se ejecuta conservando ese esquema de pruebas:
+
+```powershell
+python manage.py test --keepdb
+```
+
+## Configuración para despliegue
+
+En el servidor se deben definir `DJANGO_PRODUCTION=True`, `DJANGO_DEBUG=False`,
+una `DJANGO_SECRET_KEY` aleatoria de al menos 50 caracteres, el dominio en
+`DJANGO_ALLOWED_HOSTS` y su URL HTTPS en `DJANGO_CSRF_TRUSTED_ORIGINS`. Con ese
+modo activo, Django exige HTTPS y habilita cookies seguras y HSTS. El entorno
+local mantiene HTTP para facilitar el desarrollo.
 

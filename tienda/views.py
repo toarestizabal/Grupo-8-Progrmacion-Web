@@ -3,7 +3,6 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseBadRequest, JsonResponse
@@ -12,6 +11,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_POST
 
+from .checkout import CompraError, crear_pedido_desde_carrito
 from .decorators import administrador_requerido, cliente_requerido
 from .forms import (
     EstadoPedidoForm,
@@ -27,7 +27,6 @@ from .forms import (
 from .models import (
     Carrito,
     Categoria,
-    DetallePedido,
     Inventario,
     ItemCarrito,
     Pedido,
@@ -40,6 +39,17 @@ from .services import (
     obtener_informacion_producto,
     obtener_juegos_externos,
 )
+
+
+def _redirigir_destino_seguro(request, destino_predeterminado):
+    destino = request.POST.get("next", "")
+    if destino and url_has_allowed_host_and_scheme(
+        destino,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(destino)
+    return redirect(destino_predeterminado)
 
 
 def inicio(request):
@@ -186,7 +196,7 @@ def agregar_carrito(request, producto_id):
     )
     if producto.inventario.stock < 1:
         messages.warning(request, "Este producto no tiene stock disponible.")
-        return redirect(request.POST.get("next") or "tienda:catalogo")
+        return _redirigir_destino_seguro(request, "tienda:catalogo")
     carro, _ = Carrito.objects.get_or_create(usuario=request.user)
     item, creado = ItemCarrito.objects.get_or_create(
         carrito=carro, producto=producto, defaults={"cantidad": 1}
@@ -194,14 +204,11 @@ def agregar_carrito(request, producto_id):
     if not creado:
         if item.cantidad >= producto.inventario.stock:
             messages.warning(request, "No hay más unidades disponibles.")
-            return redirect(request.POST.get("next") or "tienda:carrito")
+            return _redirigir_destino_seguro(request, "tienda:carrito")
         item.cantidad += 1
         item.save(update_fields=("cantidad",))
     messages.success(request, f"{producto.nombre} fue agregado al carrito.")
-    destino = request.POST.get("next")
-    if destino and url_has_allowed_host_and_scheme(destino, {request.get_host()}):
-        return redirect(destino)
-    return redirect("tienda:carrito")
+    return _redirigir_destino_seguro(request, "tienda:carrito")
 
 
 @cliente_requerido
@@ -245,43 +252,12 @@ def pago(request):
     form = PagoSimuladoForm(request.POST or None, usuario=request.user)
     if request.method == "POST" and form.is_valid():
         try:
-            with transaction.atomic():
-                inventarios = {
-                    inv.producto_id: inv
-                    for inv in Inventario.objects.select_for_update().filter(
-                        producto_id__in=[item.producto_id for item in items]
-                    )
-                }
-                for item in items:
-                    inventario = inventarios[item.producto_id]
-                    if not item.producto.activo or item.cantidad > inventario.stock:
-                        raise ValueError(f"Stock insuficiente para {item.producto.nombre}.")
-
-                total = sum((item.subtotal for item in items), Decimal("0"))
-                pedido = Pedido.objects.create(
-                    usuario=request.user,
-                    total=total,
-                    direccion_despacho=form.cleaned_data["direccion_despacho"],
-                    ultimos_digitos=form.cleaned_data["numero_tarjeta"][-4:],
-                )
-                DetallePedido.objects.bulk_create(
-                    [
-                        DetallePedido(
-                            pedido=pedido,
-                            producto=item.producto,
-                            nombre_producto=item.producto.nombre,
-                            precio_unitario=item.producto.precio,
-                            cantidad=item.cantidad,
-                        )
-                        for item in items
-                    ]
-                )
-                for item in items:
-                    inventario = inventarios[item.producto_id]
-                    inventario.stock -= item.cantidad
-                    inventario.save(update_fields=("stock", "actualizado"))
-                carro.items.all().delete()
-        except ValueError as error:
+            pedido = crear_pedido_desde_carrito(
+                usuario=request.user,
+                direccion_despacho=form.cleaned_data["direccion_despacho"],
+                numero_tarjeta=form.cleaned_data["numero_tarjeta"],
+            )
+        except CompraError as error:
             messages.error(request, str(error))
             return redirect("tienda:carrito")
 

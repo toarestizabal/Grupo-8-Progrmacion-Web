@@ -7,11 +7,26 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+
+def env_bool(nombre, valor_predeterminado=False):
+    """Convierte una variable de entorno habitual a un booleano."""
+    valor = os.getenv(nombre, str(valor_predeterminado))
+    return valor.strip().lower() in {"1", "true", "yes", "si", "sí"}
+
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
     raise RuntimeError("Falta DJANGO_SECRET_KEY en el archivo .env")
 
-DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes", "si"}
+DEBUG = env_bool("DJANGO_DEBUG")
+PRODUCTION = env_bool("DJANGO_PRODUCTION")
+if PRODUCTION and DEBUG:
+    raise RuntimeError("DJANGO_DEBUG debe ser False cuando DJANGO_PRODUCTION=True")
+if PRODUCTION and (
+    len(SECRET_KEY) < 50 or SECRET_KEY.lower().startswith("reemplazar")
+):
+    raise RuntimeError("DJANGO_SECRET_KEY debe ser larga y aleatoria en producción")
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
@@ -72,6 +87,15 @@ DATABASES = {
         "HOST": "",
         "PORT": "",
         "CONN_MAX_AGE": 60,
+        "TEST": {
+            # El esquema de pruebas se crea una sola vez con
+            # database/create_test_user.sql. Nunca se prueba sobre PIXELFORGE_APP.
+            "USER": os.getenv("ORACLE_TEST_USER", "PIXELFORGE_TEST"),
+            "PASSWORD": os.getenv("ORACLE_TEST_PASSWORD")
+            or os.getenv("ORACLE_PASSWORD", ""),
+            "CREATE_DB": False,
+            "CREATE_USER": False,
+        },
     }
 }
 
@@ -105,6 +129,24 @@ API_TOKEN_TTL_HOURS = int(os.getenv("API_TOKEN_TTL_HOURS", "24"))
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
+CSRF_TRUSTED_ORIGINS = [
+    origen.strip()
+    for origen in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origen.strip()
+]
+
+# Estas medidas se activan al desplegar detrás de un proxy HTTPS (por ejemplo, Azure).
+SECURE_SSL_REDIRECT = PRODUCTION
+SESSION_COOKIE_SECURE = PRODUCTION
+CSRF_COOKIE_SECURE = PRODUCTION
+SECURE_HSTS_SECONDS = (
+    int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "3600")) if PRODUCTION else 0
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = PRODUCTION
+SECURE_HSTS_PRELOAD = PRODUCTION
+SECURE_REFERRER_POLICY = "same-origin"
+if PRODUCTION:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

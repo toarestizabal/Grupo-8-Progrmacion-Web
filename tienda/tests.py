@@ -239,6 +239,33 @@ class PixelForgeTestCase(TestCase):
         self.producto.inventario.refresh_from_db()
         self.assertEqual(self.producto.inventario.stock, 18)
 
+    def test_carrito_rechaza_redireccion_externa(self):
+        self.client.force_login(self.cliente)
+        Inventario.objects.filter(producto=self.producto).update(stock=0)
+
+        sin_stock = self.client.post(
+            reverse("tienda:agregar_carrito", args=(self.producto.pk,)),
+            {"next": "https://sitio-malicioso.example/robo"},
+        )
+        self.assertRedirects(
+            sin_stock,
+            reverse("tienda:catalogo"),
+            fetch_redirect_response=False,
+        )
+
+        Inventario.objects.filter(producto=self.producto).update(stock=1)
+        carrito = Carrito.objects.create(usuario=self.cliente)
+        ItemCarrito.objects.create(carrito=carrito, producto=self.producto, cantidad=1)
+        limite_stock = self.client.post(
+            reverse("tienda:agregar_carrito", args=(self.producto.pk,)),
+            {"next": "https://sitio-malicioso.example/robo"},
+        )
+        self.assertRedirects(
+            limite_stock,
+            reverse("tienda:carrito"),
+            fetch_redirect_response=False,
+        )
+
     def test_carrito_y_pago_generan_pedido_y_reducen_stock(self):
         self.client.force_login(self.cliente)
         self.client.post(reverse("tienda:agregar_carrito", args=(self.producto.pk,)))
@@ -264,6 +291,22 @@ class PixelForgeTestCase(TestCase):
         self.producto.inventario.refresh_from_db()
         self.assertEqual(self.producto.inventario.stock, 3)
         self.assertFalse(carrito.items.exists())
+
+        # Repetir el envío del formulario no crea otro pedido ni descuenta dos veces.
+        repetido = self.client.post(
+            reverse("tienda:pago"),
+            {
+                "direccion_despacho": "Av. Pruebas 123",
+                "titular": "Cliente Pruebas",
+                "numero_tarjeta": "4111111111111111",
+                "vencimiento": "12/99",
+                "cvv": "123",
+            },
+        )
+        self.assertRedirects(repetido, reverse("tienda:carrito"))
+        self.assertEqual(Pedido.objects.filter(usuario=self.cliente).count(), 1)
+        self.producto.inventario.refresh_from_db()
+        self.assertEqual(self.producto.inventario.stock, 3)
 
     def test_administrador_crea_y_elimina_usuario(self):
         self.client.force_login(self.admin)
