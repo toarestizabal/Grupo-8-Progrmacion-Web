@@ -13,19 +13,6 @@ from django.core.cache import cache
 FREETOGAME_URL = "https://www.freetogame.com/api/games?sort-by=popularity"
 CACHE_KEY = "pixelforge:juegos_externos"
 
-PRODUCTOS_EXTERNOS = {
-    "Halo: Campaign Evolved": {"steam": 2806050, "youtube": "5KhzCSeZxAU"},
-    "Ghost of Yōtei": {"wikidata": "Q130360297", "youtube": "7z7kqwuf0a8"},
-    "Big Walk": {"steam": 1478500, "youtube": "vyQPc1i4Rpo"},
-    "007 First Light": {"steam": 3768760, "youtube": "i-fgtpwEMPM"},
-    "eBaseball: PRO SPIRIT 2026": {"steam": 4150530, "youtube": "MSdtPWXUCIk"},
-    "Streetdog BMX": {"steam": 2707870, "youtube": "rPODn3M3o-s"},
-    "Beast of Reincarnation": {"steam": 2001760, "youtube": "H0r-Kap8kWI"},
-    "Nioh 3": {"steam": 3681010, "youtube": "30C75tjO3ms"},
-    "MARVEL Tōkon: Fighting Souls": {"steam": 3787240, "youtube": "hzoWfRb2ZYI"},
-    "Avatar Legends: The Fighting Game": {"steam": 2424420, "youtube": "nboz6eLKoaQ"},
-}
-
 
 class ServicioExternoError(Exception):
     pass
@@ -177,22 +164,25 @@ def _obtener_trailer_youtube(video_id):
     }
 
 
-def obtener_informacion_producto(nombre):
-    configuracion = PRODUCTOS_EXTERNOS.get(nombre)
-    if not configuracion:
+def obtener_informacion_producto(producto):
+    if not producto.tiene_servicios_externos:
         raise ServicioExternoError("Este producto no tiene servicios externos configurados.")
 
-    identificador_cache = sha256(nombre.encode("utf-8")).hexdigest()[:16]
+    identidad = (
+        f"{producto.pk}:{producto.steam_app_id or ''}:"
+        f"{producto.wikidata_id}:{producto.youtube_video_id}"
+    )
+    identificador_cache = sha256(identidad.encode("utf-8")).hexdigest()[:16]
     clave_cache = f"pixelforge:producto_externo:{identificador_cache}"
     almacenada = cache.get(clave_cache)
     if almacenada is not None:
         return almacenada
 
-    if "steam" in configuracion:
-        ficha = _obtener_ficha_steam(configuracion["steam"])
+    if producto.steam_app_id:
+        ficha = _obtener_ficha_steam(producto.steam_app_id)
     else:
-        ficha = _obtener_ficha_wikidata(configuracion["wikidata"])
-    trailer = _obtener_trailer_youtube(configuracion["youtube"])
+        ficha = _obtener_ficha_wikidata(producto.wikidata_id)
+    trailer = _obtener_trailer_youtube(producto.youtube_video_id)
 
     campos_ficha = (
         "titulo",

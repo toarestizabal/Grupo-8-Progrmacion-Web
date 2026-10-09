@@ -20,7 +20,12 @@ from .models import (
     Rol,
     Usuario,
 )
-from .services import ServicioExternoError, _solicitar_json, obtener_juegos_externos
+from .services import (
+    ServicioExternoError,
+    _solicitar_json,
+    obtener_informacion_producto,
+    obtener_juegos_externos,
+)
 
 
 class PixelForgeTestCase(TestCase):
@@ -203,6 +208,9 @@ class PixelForgeTestCase(TestCase):
                 "descripcion": "Creado desde la interfaz.",
                 "precio": "39990",
                 "imagen": "accion.svg",
+                "steam_app_id": "999999",
+                "wikidata_id": "",
+                "youtube_video_id": "videoPrueba1",
                 "activo": "on",
                 "stock": "7",
             },
@@ -210,6 +218,8 @@ class PixelForgeTestCase(TestCase):
         self.assertRedirects(respuesta, reverse("tienda:admin_productos"))
         producto = Producto.objects.get(nombre="Producto CRUD")
         self.assertEqual(producto.inventario.stock, 7)
+        self.assertEqual(producto.steam_app_id, 999999)
+        self.assertEqual(producto.youtube_video_id, "videoPrueba1")
 
         respuesta = self.client.post(
             reverse("tienda:admin_producto_editar", args=(producto.pk,)),
@@ -219,6 +229,9 @@ class PixelForgeTestCase(TestCase):
                 "descripcion": "Actualizado.",
                 "precio": "40000",
                 "imagen": "accion.svg",
+                "steam_app_id": "999999",
+                "wikidata_id": "",
+                "youtube_video_id": "videoPrueba1",
                 "activo": "on",
             },
         )
@@ -238,6 +251,32 @@ class PixelForgeTestCase(TestCase):
         self.assertRedirects(respuesta, reverse("tienda:admin_inventario"))
         self.producto.inventario.refresh_from_db()
         self.assertEqual(self.producto.inventario.stock, 18)
+
+    def test_producto_rechaza_configuracion_externa_incompleta(self):
+        self.client.force_login(self.admin)
+        respuesta = self.client.post(
+            reverse("tienda:admin_producto_crear"),
+            {
+                "nombre": "Producto externo incompleto",
+                "categoria": self.categoria.pk,
+                "descripcion": "No debe guardarse.",
+                "precio": "19990",
+                "imagen": "accion.svg",
+                "steam_app_id": "999999",
+                "wikidata_id": "",
+                "youtube_video_id": "",
+                "activo": "on",
+                "stock": "1",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(
+            respuesta,
+            "La ficha externa y el video de YouTube deben configurarse juntos.",
+        )
+        self.assertFalse(
+            Producto.objects.filter(nombre="Producto externo incompleto").exists()
+        )
 
     def test_carrito_rechaza_redireccion_externa(self):
         self.client.force_login(self.cliente)
@@ -391,6 +430,8 @@ class InformacionProductoExternaTests(TestCase):
             descripcion="Producto utilizado para probar la ficha externa.",
             precio=Decimal("25000"),
             imagen="accion.svg",
+            steam_app_id=123456,
+            youtube_video_id="abcdefghijk",
         )
 
     @patch("tienda.views.obtener_informacion_producto")
@@ -420,6 +461,7 @@ class InformacionProductoExternaTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(respuesta.json()["ficha"]["desarrollador"], "Estudio")
         self.assertEqual(respuesta.json()["trailer"]["canal"], "Canal oficial")
+        obtener_informacion.assert_called_once_with(self.producto)
 
     def test_detalle_producto_incluye_endpoint_para_fetch(self):
         respuesta = self.client.get(reverse("tienda:producto_detalle", args=(self.producto.pk,)))
@@ -443,3 +485,57 @@ class InformacionProductoExternaTests(TestCase):
             respuesta.json()["detalle"],
             "La información externa no está disponible.",
         )
+
+    @patch("tienda.services._obtener_trailer_youtube")
+    @patch("tienda.services._obtener_ficha_steam")
+    def test_controla_ficha_steam_correcta_y_youtube_caido(self, ficha_steam, trailer):
+        cache.clear()
+        ficha_steam.return_value = self._ficha_externa_valida()
+        trailer.side_effect = ServicioExternoError(
+            "YouTube no está disponible en este momento."
+        )
+
+        with self.assertRaisesMessage(
+            ServicioExternoError,
+            "YouTube no está disponible en este momento.",
+        ):
+            obtener_informacion_producto(self.producto)
+
+        ficha_steam.assert_called_once_with(123456)
+        trailer.assert_called_once_with("abcdefghijk")
+
+    @patch("tienda.services._obtener_trailer_youtube")
+    @patch("tienda.services._obtener_ficha_wikidata")
+    def test_controla_ficha_wikidata_correcta_y_youtube_invalido(
+        self, ficha_wikidata, trailer
+    ):
+        cache.clear()
+        Producto.objects.filter(pk=self.producto.pk).update(
+            steam_app_id=None,
+            wikidata_id="Q123456",
+        )
+        self.producto.refresh_from_db()
+        ficha_wikidata.return_value = self._ficha_externa_valida()
+        trailer.return_value = {"titulo": "", "canal": "", "video": ""}
+
+        with self.assertRaisesMessage(
+            ServicioExternoError,
+            "La información externa del tráiler está incompleta.",
+        ):
+            obtener_informacion_producto(self.producto)
+
+        ficha_wikidata.assert_called_once_with("Q123456")
+        trailer.assert_called_once_with("abcdefghijk")
+
+    @staticmethod
+    def _ficha_externa_valida():
+        return {
+            "titulo": "Videojuego externo",
+            "resumen": "Resumen",
+            "desarrollador": "Estudio",
+            "editor": "Editor",
+            "plataformas": "Windows",
+            "generos": "Acción",
+            "lanzamiento": "Disponible",
+            "servicio": "Servicio de prueba",
+        }

@@ -17,16 +17,16 @@ CATEGORIAS = [
 ]
 
 PRODUCTOS = [
-    ("Halo: Campaign Evolved", "accion", "Una campaña de ciencia ficción completamente renovada.", "49990", 12, "Halo Campaign Evolved.jpg"),
-    ("Ghost of Yōtei", "accion", "Acción samurái en un territorio salvaje y espectacular.", "69990", 8, "Ghost of Yōtei.jpg"),
-    ("Big Walk", "aventura", "Una aventura cooperativa relajada llena de descubrimientos.", "19990", 20, "Big Walk.jpg"),
-    ("007 First Light", "aventura", "Los orígenes de un agente en una misión cinematográfica.", "69990", 6, "007 First Light.jpg"),
-    ("eBaseball: PRO SPIRIT 2026", "deportes", "Béisbol profesional con estadios y plantillas actualizadas.", "59990", 10, "eBaseball PRO SPIRIT 2026.jpg"),
-    ("Streetdog BMX", "deportes", "Trucos, velocidad y libertad sobre dos ruedas.", "19990", 15, "Streetdog BMX.jpg"),
-    ("Beast of Reincarnation", "rpg", "Un RPG de acción ambientado en una tierra misteriosa.", "59990", 7, "Beast of Reincarnation.jpg"),
-    ("Nioh 3", "rpg", "Combates exigentes contra guerreros y criaturas sobrenaturales.", "69990", 9, "Nioh 3.jpg"),
-    ("MARVEL Tōkon: Fighting Souls", "combate", "Héroes y villanos se enfrentan en equipos espectaculares.", "59990", 11, "MARVEL Tōkon Fighting Souls.jpg"),
-    ("Avatar Legends: The Fighting Game", "combate", "Domina los elementos en combates competitivos.", "29990", 14, "Avatar Legends The Fighting Game.jpg"),
+    ("Halo: Campaign Evolved", "accion", "Una campaña de ciencia ficción completamente renovada.", "49990", 12, "Halo Campaign Evolved.jpg", 2806050, "", "5KhzCSeZxAU"),
+    ("Ghost of Yōtei", "accion", "Acción samurái en un territorio salvaje y espectacular.", "69990", 8, "Ghost of Yōtei.jpg", None, "Q130360297", "7z7kqwuf0a8"),
+    ("Big Walk", "aventura", "Una aventura cooperativa relajada llena de descubrimientos.", "19990", 20, "Big Walk.jpg", 1478500, "", "vyQPc1i4Rpo"),
+    ("007 First Light", "aventura", "Los orígenes de un agente en una misión cinematográfica.", "69990", 6, "007 First Light.jpg", 3768760, "", "i-fgtpwEMPM"),
+    ("eBaseball: PRO SPIRIT 2026", "deportes", "Béisbol profesional con estadios y plantillas actualizadas.", "59990", 10, "eBaseball PRO SPIRIT 2026.jpg", 4150530, "", "MSdtPWXUCIk"),
+    ("Streetdog BMX", "deportes", "Trucos, velocidad y libertad sobre dos ruedas.", "19990", 15, "Streetdog BMX.jpg", 2707870, "", "rPODn3M3o-s"),
+    ("Beast of Reincarnation", "rpg", "Un RPG de acción ambientado en una tierra misteriosa.", "59990", 7, "Beast of Reincarnation.jpg", 2001760, "", "H0r-Kap8kWI"),
+    ("Nioh 3", "rpg", "Combates exigentes contra guerreros y criaturas sobrenaturales.", "69990", 9, "Nioh 3.jpg", 3681010, "", "30C75tjO3ms"),
+    ("MARVEL Tōkon: Fighting Souls", "combate", "Héroes y villanos se enfrentan en equipos espectaculares.", "59990", 11, "MARVEL Tōkon Fighting Souls.jpg", 3787240, "", "hzoWfRb2ZYI"),
+    ("Avatar Legends: The Fighting Game", "combate", "Domina los elementos en combates competitivos.", "29990", 14, "Avatar Legends The Fighting Game.jpg", 2424420, "", "nboz6eLKoaQ"),
 ]
 
 
@@ -59,7 +59,17 @@ class Command(BaseCommand):
             )
             categorias[slug] = categoria
 
-        for nombre, slug, descripcion, precio, stock, imagen in PRODUCTOS:
+        for (
+            nombre,
+            slug,
+            descripcion,
+            precio,
+            stock,
+            imagen,
+            steam_app_id,
+            wikidata_id,
+            youtube_video_id,
+        ) in PRODUCTOS:
             producto, _ = Producto.objects.update_or_create(
                 nombre=nombre,
                 defaults={
@@ -67,6 +77,9 @@ class Command(BaseCommand):
                     "descripcion": descripcion,
                     "precio": Decimal(precio),
                     "imagen": imagen,
+                    "steam_app_id": steam_app_id,
+                    "wikidata_id": wikidata_id,
+                    "youtube_video_id": youtube_video_id,
                     "activo": True,
                 },
             )

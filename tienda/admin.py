@@ -54,7 +54,14 @@ class InventarioInline(admin.StackedInline):
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "categoria", "precio", "stock", "activo")
+    list_display = (
+        "nombre",
+        "categoria",
+        "precio",
+        "stock",
+        "servicios_externos",
+        "activo",
+    )
     list_filter = ("categoria", "activo")
     search_fields = ("nombre", "descripcion")
     inlines = (InventarioInline,)
@@ -62,6 +69,10 @@ class ProductoAdmin(admin.ModelAdmin):
     @admin.display(description="Stock")
     def stock(self, obj):
         return obj.inventario.stock
+
+    @admin.display(boolean=True, description="Servicios externos")
+    def servicios_externos(self, obj):
+        return obj.tiene_servicios_externos
 
 
 class DetallePedidoInline(admin.TabularInline):

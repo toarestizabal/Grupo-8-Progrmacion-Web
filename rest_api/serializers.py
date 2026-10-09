@@ -33,6 +33,9 @@ class ProductoSerializer(serializers.ModelSerializer):
             "descripcion",
             "precio",
             "imagen",
+            "steam_app_id",
+            "wikidata_id",
+            "youtube_video_id",
             "activo",
             "stock",
             "creado",
@@ -48,3 +51,25 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     def validate_imagen(self, value):
         return value.strip().replace("\\", "/").rsplit("/", 1)[-1]
+
+    def validate(self, attrs):
+        instancia = self.instance
+        steam_app_id = attrs.get(
+            "steam_app_id", getattr(instancia, "steam_app_id", None)
+        )
+        wikidata_id = attrs.get(
+            "wikidata_id", getattr(instancia, "wikidata_id", "")
+        )
+        youtube_video_id = attrs.get(
+            "youtube_video_id", getattr(instancia, "youtube_video_id", "")
+        )
+
+        if steam_app_id and wikidata_id:
+            raise serializers.ValidationError(
+                "Configura una ficha de Steam o Wikidata, no ambas."
+            )
+        if bool(steam_app_id or wikidata_id) != bool(youtube_video_id):
+            raise serializers.ValidationError(
+                "La ficha externa y el video de YouTube deben configurarse juntos."
+            )
+        return attrs

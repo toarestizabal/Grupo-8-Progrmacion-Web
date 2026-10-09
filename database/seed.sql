@@ -31,7 +31,8 @@ END;
 DECLARE
     PROCEDURE upsert_producto(
         p_nombre NVARCHAR2, p_categoria NVARCHAR2, p_descripcion NVARCHAR2,
-        p_precio NUMBER, p_stock NUMBER, p_imagen NVARCHAR2
+        p_precio NUMBER, p_stock NUMBER, p_imagen NVARCHAR2,
+        p_steam_app_id NUMBER, p_wikidata_id NVARCHAR2, p_youtube_video_id NVARCHAR2
     ) IS
         v_producto_id NUMBER;
     BEGIN
@@ -40,10 +41,14 @@ DECLARE
         WHEN MATCHED THEN UPDATE SET
             p.categoria_id=(SELECT id FROM PF_CATEGORIAS WHERE slug=p_categoria),
             p.descripcion=p_descripcion,p.precio=p_precio,p.imagen=p_imagen,
+            p.steam_app_id=p_steam_app_id,p.wikidata_id=p_wikidata_id,
+            p.youtube_video_id=p_youtube_video_id,
             p.activo=1,p.actualizado=SYSTIMESTAMP
         WHEN NOT MATCHED THEN INSERT
-            (nombre,descripcion,precio,imagen,activo,creado,actualizado,categoria_id)
-            VALUES (p_nombre,p_descripcion,p_precio,p_imagen,1,SYSTIMESTAMP,SYSTIMESTAMP,
+            (nombre,descripcion,precio,imagen,steam_app_id,wikidata_id,youtube_video_id,
+             activo,creado,actualizado,categoria_id)
+            VALUES (p_nombre,p_descripcion,p_precio,p_imagen,p_steam_app_id,p_wikidata_id,
+                    p_youtube_video_id,1,SYSTIMESTAMP,SYSTIMESTAMP,
                     (SELECT id FROM PF_CATEGORIAS WHERE slug=p_categoria));
         SELECT id INTO v_producto_id FROM PF_PRODUCTOS WHERE nombre=p_nombre;
         MERGE INTO PF_INVENTARIO i
@@ -53,16 +58,16 @@ DECLARE
             VALUES (p_stock,SYSTIMESTAMP,v_producto_id);
     END;
 BEGIN
-    upsert_producto(N'Halo: Campaign Evolved',N'accion',UNISTR('Una campa\00F1a de ciencia ficci\00F3n completamente renovada.'),49990,12,N'Halo Campaign Evolved.jpg');
-    upsert_producto(UNISTR('Ghost of Y\014Dtei'),N'accion',UNISTR('Acci\00F3n samur\00E1i en un territorio salvaje y espectacular.'),69990,8,UNISTR('Ghost of Y\014Dtei.jpg'));
-    upsert_producto(N'Big Walk',N'aventura',N'Una aventura cooperativa relajada llena de descubrimientos.',19990,20,N'Big Walk.jpg');
-    upsert_producto(N'007 First Light',N'aventura',UNISTR('Los or\00EDgenes de un agente en una misi\00F3n cinematogr\00E1fica.'),69990,6,N'007 First Light.jpg');
-    upsert_producto(N'eBaseball: PRO SPIRIT 2026',N'deportes',UNISTR('B\00E9isbol profesional con estadios y plantillas actualizadas.'),59990,10,N'eBaseball PRO SPIRIT 2026.jpg');
-    upsert_producto(N'Streetdog BMX',N'deportes',N'Trucos, velocidad y libertad sobre dos ruedas.',19990,15,N'Streetdog BMX.jpg');
-    upsert_producto(N'Beast of Reincarnation',N'rpg',UNISTR('Un RPG de acci\00F3n ambientado en una tierra misteriosa.'),59990,7,N'Beast of Reincarnation.jpg');
-    upsert_producto(N'Nioh 3',N'rpg',N'Combates exigentes contra guerreros y criaturas sobrenaturales.',69990,9,N'Nioh 3.jpg');
-    upsert_producto(UNISTR('MARVEL T\014Dkon: Fighting Souls'),N'combate',UNISTR('H\00E9roes y villanos se enfrentan en equipos espectaculares.'),59990,11,UNISTR('MARVEL T\014Dkon Fighting Souls.jpg'));
-    upsert_producto(N'Avatar Legends: The Fighting Game',N'combate',N'Domina los elementos en combates competitivos.',29990,14,N'Avatar Legends The Fighting Game.jpg');
+    upsert_producto(N'Halo: Campaign Evolved',N'accion',UNISTR('Una campa\00F1a de ciencia ficci\00F3n completamente renovada.'),49990,12,N'Halo Campaign Evolved.jpg',2806050,N'',N'5KhzCSeZxAU');
+    upsert_producto(UNISTR('Ghost of Y\014Dtei'),N'accion',UNISTR('Acci\00F3n samur\00E1i en un territorio salvaje y espectacular.'),69990,8,UNISTR('Ghost of Y\014Dtei.jpg'),NULL,N'Q130360297',N'7z7kqwuf0a8');
+    upsert_producto(N'Big Walk',N'aventura',N'Una aventura cooperativa relajada llena de descubrimientos.',19990,20,N'Big Walk.jpg',1478500,N'',N'vyQPc1i4Rpo');
+    upsert_producto(N'007 First Light',N'aventura',UNISTR('Los or\00EDgenes de un agente en una misi\00F3n cinematogr\00E1fica.'),69990,6,N'007 First Light.jpg',3768760,N'',N'i-fgtpwEMPM');
+    upsert_producto(N'eBaseball: PRO SPIRIT 2026',N'deportes',UNISTR('B\00E9isbol profesional con estadios y plantillas actualizadas.'),59990,10,N'eBaseball PRO SPIRIT 2026.jpg',4150530,N'',N'MSdtPWXUCIk');
+    upsert_producto(N'Streetdog BMX',N'deportes',N'Trucos, velocidad y libertad sobre dos ruedas.',19990,15,N'Streetdog BMX.jpg',2707870,N'',N'rPODn3M3o-s');
+    upsert_producto(N'Beast of Reincarnation',N'rpg',UNISTR('Un RPG de acci\00F3n ambientado en una tierra misteriosa.'),59990,7,N'Beast of Reincarnation.jpg',2001760,N'',N'H0r-Kap8kWI');
+    upsert_producto(N'Nioh 3',N'rpg',N'Combates exigentes contra guerreros y criaturas sobrenaturales.',69990,9,N'Nioh 3.jpg',3681010,N'',N'30C75tjO3ms');
+    upsert_producto(UNISTR('MARVEL T\014Dkon: Fighting Souls'),N'combate',UNISTR('H\00E9roes y villanos se enfrentan en equipos espectaculares.'),59990,11,UNISTR('MARVEL T\014Dkon Fighting Souls.jpg'),3787240,N'',N'hzoWfRb2ZYI');
+    upsert_producto(N'Avatar Legends: The Fighting Game',N'combate',N'Domina los elementos en combates competitivos.',29990,14,N'Avatar Legends The Fighting Game.jpg',2424420,N'',N'nboz6eLKoaQ');
 END;
 /
 

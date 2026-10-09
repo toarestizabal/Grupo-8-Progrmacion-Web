@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
@@ -91,6 +92,25 @@ class Producto(models.Model):
         max_length=200,
         help_text="Nombre del archivo ubicado en tienda/static/tienda/images/",
     )
+    steam_app_id = models.PositiveBigIntegerField(
+        "ID de aplicación en Steam",
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        help_text="Completa Steam o Wikidata, no ambos.",
+    )
+    wikidata_id = models.CharField(
+        "ID de entidad en Wikidata",
+        max_length=20,
+        blank=True,
+        help_text="Ejemplo: Q130360297.",
+    )
+    youtube_video_id = models.CharField(
+        "ID del video en YouTube",
+        max_length=20,
+        blank=True,
+        help_text="Solo el identificador ubicado después de v= en la URL.",
+    )
     activo = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
@@ -101,6 +121,30 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    @property
+    def tiene_servicios_externos(self):
+        return bool((self.steam_app_id or self.wikidata_id) and self.youtube_video_id)
+
+    def clean(self):
+        super().clean()
+        errores = {}
+        if self.steam_app_id and self.wikidata_id:
+            mensaje = "Configura una ficha de Steam o Wikidata, no ambas."
+            errores["steam_app_id"] = mensaje
+            errores["wikidata_id"] = mensaje
+
+        tiene_ficha = bool(self.steam_app_id or self.wikidata_id)
+        tiene_trailer = bool(self.youtube_video_id)
+        if tiene_ficha != tiene_trailer:
+            mensaje = "La ficha externa y el video de YouTube deben configurarse juntos."
+            if not tiene_ficha:
+                errores["steam_app_id"] = mensaje
+            if not tiene_trailer:
+                errores["youtube_video_id"] = mensaje
+
+        if errores:
+            raise ValidationError(errores)
 
 
 class Inventario(models.Model):

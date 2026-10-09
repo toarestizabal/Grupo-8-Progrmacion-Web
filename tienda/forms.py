@@ -164,18 +164,34 @@ class ProductoForm(BootstrapFormMixin, forms.ModelForm):
 
     class Meta:
         model = Producto
-        fields = ("nombre", "categoria", "descripcion", "precio", "imagen", "activo")
+        fields = (
+            "nombre",
+            "categoria",
+            "descripcion",
+            "precio",
+            "imagen",
+            "steam_app_id",
+            "wikidata_id",
+            "youtube_video_id",
+            "activo",
+        )
         labels = {
             "categoria": "Categoría",
             "descripcion": "Descripción",
             "precio": "Precio (CLP)",
             "imagen": "Archivo de imagen",
+            "steam_app_id": "ID de aplicación en Steam",
+            "wikidata_id": "ID de entidad en Wikidata",
+            "youtube_video_id": "ID del video en YouTube",
             "activo": "Visible en el catálogo",
         }
         widgets = {
             "descripcion": forms.Textarea(attrs={"rows": 3}),
             "precio": forms.NumberInput(attrs={"min": "1", "step": "1"}),
             "imagen": forms.TextInput(attrs={"placeholder": "Halo Campaign Evolved.jpg"}),
+            "steam_app_id": forms.NumberInput(attrs={"min": "1", "placeholder": "2806050"}),
+            "wikidata_id": forms.TextInput(attrs={"placeholder": "Q130360297"}),
+            "youtube_video_id": forms.TextInput(attrs={"placeholder": "5KhzCSeZxAU"}),
         }
 
     def __init__(self, *args, **kwargs):

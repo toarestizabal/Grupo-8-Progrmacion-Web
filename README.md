@@ -96,6 +96,10 @@ Esta solicitud también debe incluir la cabecera `Authorization: Token <token>`.
 
 La página `http://127.0.0.1:8000/explorar-juegos/` consume FreeToGame mediante JavaScript. Además, el botón **Ver detalles** de cada producto abre una ficha interna que combina información de Steam Store o Wikidata con un tráiler consultado mediante YouTube oEmbed. Los diez productos tienen la misma ficha y no se necesitan claves ni cuentas para utilizar estos servicios.
 
+Los identificadores de Steam, Wikidata y YouTube se almacenan en cada producto
+y pueden administrarse desde el mantenedor. Un producto puede quedar sin ficha
+externa; si se configura, debe indicar Steam o Wikidata junto con YouTube.
+
 ## Cuentas para probar
 
 - Administrador: `admin` / `Admin123!`

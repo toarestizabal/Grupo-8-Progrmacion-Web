@@ -95,7 +95,7 @@ def producto_detalle(request, producto_id):
 def informacion_externa_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id, activo=True)
     try:
-        informacion = obtener_informacion_producto(producto.nombre)
+        informacion = obtener_informacion_producto(producto)
     except ServicioExternoError as error:
         return JsonResponse({"detalle": str(error)}, status=502)
     return JsonResponse(informacion)
