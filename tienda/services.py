@@ -86,60 +86,104 @@ def _obtener_ficha_steam(app_id):
     }
 
 
-def _obtener_ficha_wikidata(entidad_id):
-    consulta = f"""
-PREFIX schema: <http://schema.org/>
-SELECT ?item ?itemLabel ?date ?developerLabel ?publisherLabel ?platformLabel
-       ?genreLabel ?description WHERE {{
-  VALUES ?item {{ wd:{entidad_id} }}
-  OPTIONAL {{ ?item wdt:P577 ?date. }}
-  OPTIONAL {{ ?item wdt:P178 ?developer. }}
-  OPTIONAL {{ ?item wdt:P123 ?publisher. }}
-  OPTIONAL {{ ?item wdt:P400 ?platform. }}
-  OPTIONAL {{ ?item wdt:P136 ?genre. }}
-  OPTIONAL {{
-    ?item schema:description ?description.
-    FILTER(LANG(?description) = "es" || LANG(?description) = "en")
-  }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "es,en,mul". }}
-}}
-"""
-    parametros = urlencode({"query": consulta, "format": "json"})
+def _valor_localizado(valores):
+    for idioma in ("es", "en", "mul"):
+        valor = valores.get(idioma, {}).get("value", "")
+        if valor:
+            return valor
+    return ""
+
+
+def _ids_de_propiedad(entidad, propiedad):
+    ids = []
+    for declaracion in entidad.get("claims", {}).get(propiedad, []):
+        valor = declaracion.get("mainsnak", {}).get("datavalue", {}).get("value", {})
+        identificador = valor.get("id") if isinstance(valor, dict) else ""
+        if identificador:
+            ids.append(identificador)
+    return ids
+
+
+def _obtener_ficha_wikidata(entidad_id, titulo_predeterminado=""):
+    parametros = urlencode(
+        {
+            "action": "wbgetentities",
+            "ids": entidad_id,
+            "format": "json",
+            "props": "labels|descriptions|claims",
+            "languages": "es|en|mul",
+        }
+    )
     respuesta = _solicitar_json(
-        f"https://query.wikidata.org/sparql?{parametros}",
+        f"https://www.wikidata.org/w/api.php?{parametros}",
         "Wikidata no está disponible en este momento.",
     )
-    filas = respuesta.get("results", {}).get("bindings", [])
-    if not filas:
+    entidad = respuesta.get("entities", {}).get(entidad_id, {})
+    if not entidad or entidad.get("missing") is not None:
         raise ServicioExternoError("Wikidata no entregó información del videojuego.")
 
-    def valores(campo):
-        return [fila.get(campo, {}).get("value", "") for fila in filas]
+    propiedades = {
+        "desarrollador": "P178",
+        "editor": "P123",
+        "plataformas": "P400",
+        "generos": "P136",
+    }
+    ids_por_campo = {
+        campo: _ids_de_propiedad(entidad, propiedad)
+        for campo, propiedad in propiedades.items()
+    }
+    ids_relacionados = sorted(
+        {identificador for ids in ids_por_campo.values() for identificador in ids}
+    )
+    etiquetas = {}
+    if ids_relacionados:
+        parametros_etiquetas = urlencode(
+            {
+                "action": "wbgetentities",
+                "ids": "|".join(ids_relacionados),
+                "format": "json",
+                "props": "labels",
+                "languages": "es|en|mul",
+            }
+        )
+        respuesta_etiquetas = _solicitar_json(
+            f"https://www.wikidata.org/w/api.php?{parametros_etiquetas}",
+            "Wikidata no está disponible en este momento.",
+        )
+        etiquetas = {
+            identificador: _valor_localizado(datos.get("labels", {}))
+            for identificador, datos in respuesta_etiquetas.get("entities", {}).items()
+        }
 
-    fecha = next((valor for valor in valores("date") if valor), "")
+    fecha = ""
+    declaraciones_fecha = entidad.get("claims", {}).get("P577", [])
+    if declaraciones_fecha:
+        valor_fecha = (
+            declaraciones_fecha[0]
+            .get("mainsnak", {})
+            .get("datavalue", {})
+            .get("value", {})
+        )
+        fecha = valor_fecha.get("time", "") if isinstance(valor_fecha, dict) else ""
     if fecha:
         try:
-            fecha = datetime.fromisoformat(fecha.replace("Z", "+00:00")).strftime("%d-%m-%Y")
+            fecha = datetime.fromisoformat(fecha.lstrip("+").replace("Z", "+00:00")).strftime(
+                "%d-%m-%Y"
+            )
         except ValueError:
-            fecha = fecha[:10]
+            fecha = fecha.lstrip("+")[:10]
 
-    descripciones = [
-        (
-            fila.get("description", {}).get("xml:lang", ""),
-            fila.get("description", {}).get("value", ""),
-        )
-        for fila in filas
-        if fila.get("description", {}).get("value")
-    ]
-    descripciones.sort(key=lambda item: item[0] != "es")
-
+    campos = {
+        campo: _unir_valores(etiquetas.get(identificador, identificador) for identificador in ids)
+        for campo, ids in ids_por_campo.items()
+    }
     return {
-        "titulo": next((valor for valor in valores("itemLabel") if valor), entidad_id),
-        "resumen": descripciones[0][1] if descripciones else "Videojuego de acción y aventura.",
-        "desarrollador": _unir_valores(valores("developerLabel")),
-        "editor": _unir_valores(valores("publisherLabel")),
-        "plataformas": _unir_valores(valores("platformLabel")),
-        "generos": _unir_valores(valores("genreLabel")),
+        "titulo": _valor_localizado(entidad.get("labels", {}))
+        or titulo_predeterminado
+        or entidad_id,
+        "resumen": _valor_localizado(entidad.get("descriptions", {}))
+        or "Videojuego de acción y aventura.",
+        **campos,
         "lanzamiento": fecha or "Disponible",
         "servicio": "Wikidata",
     }
@@ -181,7 +225,7 @@ def obtener_informacion_producto(producto):
     if producto.steam_app_id:
         ficha = _obtener_ficha_steam(producto.steam_app_id)
     else:
-        ficha = _obtener_ficha_wikidata(producto.wikidata_id)
+        ficha = _obtener_ficha_wikidata(producto.wikidata_id, producto.nombre)
     trailer = _obtener_trailer_youtube(producto.youtube_video_id)
 
     campos_ficha = (

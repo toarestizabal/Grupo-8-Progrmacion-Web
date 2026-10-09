@@ -22,6 +22,7 @@ from .models import (
 )
 from .services import (
     ServicioExternoError,
+    _obtener_ficha_wikidata,
     _solicitar_json,
     obtener_informacion_producto,
     obtener_juegos_externos,
@@ -369,6 +370,60 @@ class PixelForgeTestCase(TestCase):
 
 
 class ConsumoServicioExternoTests(SimpleTestCase):
+    @patch("tienda.services._solicitar_json")
+    def test_wikidata_entrega_ficha_completa_mediante_api(self, solicitar_json):
+        solicitar_json.side_effect = [
+            {
+                "entities": {
+                    "Q123": {
+                        "labels": {"mul": {"value": "Juego de prueba"}},
+                        "descriptions": {"es": {"value": "Videojuego de aventura."}},
+                        "claims": {
+                            "P577": [
+                                {
+                                    "mainsnak": {
+                                        "datavalue": {
+                                            "value": {"time": "+2026-10-09T00:00:00Z"}
+                                        }
+                                    }
+                                }
+                            ],
+                            "P178": [
+                                {"mainsnak": {"datavalue": {"value": {"id": "Q1"}}}}
+                            ],
+                            "P123": [
+                                {"mainsnak": {"datavalue": {"value": {"id": "Q2"}}}}
+                            ],
+                            "P400": [
+                                {"mainsnak": {"datavalue": {"value": {"id": "Q3"}}}}
+                            ],
+                            "P136": [
+                                {"mainsnak": {"datavalue": {"value": {"id": "Q4"}}}}
+                            ],
+                        },
+                    }
+                }
+            },
+            {
+                "entities": {
+                    "Q1": {"labels": {"en": {"value": "Estudio"}}},
+                    "Q2": {"labels": {"es": {"value": "Editor"}}},
+                    "Q3": {"labels": {"mul": {"value": "PC"}}},
+                    "Q4": {"labels": {"es": {"value": "Aventura"}}},
+                }
+            },
+        ]
+
+        ficha = _obtener_ficha_wikidata("Q123", "Título local")
+
+        self.assertEqual(ficha["titulo"], "Juego de prueba")
+        self.assertEqual(ficha["desarrollador"], "Estudio")
+        self.assertEqual(ficha["editor"], "Editor")
+        self.assertEqual(ficha["plataformas"], "PC")
+        self.assertEqual(ficha["generos"], "Aventura")
+        self.assertEqual(ficha["lanzamiento"], "09-10-2026")
+        self.assertEqual(solicitar_json.call_count, 2)
+
     @patch("tienda.views.obtener_juegos_externos")
     def test_endpoint_publico_entrega_juegos_en_json(self, obtener_juegos):
         obtener_juegos.return_value = [
@@ -524,7 +579,7 @@ class InformacionProductoExternaTests(TestCase):
         ):
             obtener_informacion_producto(self.producto)
 
-        ficha_wikidata.assert_called_once_with("Q123456")
+        ficha_wikidata.assert_called_once_with("Q123456", self.producto.nombre)
         trailer.assert_called_once_with("abcdefghijk")
 
     @staticmethod

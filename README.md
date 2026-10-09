@@ -1,6 +1,7 @@
 # PixelForge Games
 
-Es una tienda de videojuegos desarrollada con Django y Oracle 19c.
+Es una tienda de videojuegos desarrollada con Django y Oracle. El entorno local
+utiliza Oracle 19c y el despliegue público utiliza Oracle Database Free 23ai.
 
 La aplicación permite registrar clientes, iniciar sesión, recuperar la contraseña, modificar el perfil, comprar mediante un carrito y revisar pedidos. El administrador puede gestionar productos, inventario, usuarios y estados de pedidos. El pago es solamente una simulación.
 
@@ -8,10 +9,30 @@ También incluye dos API REST propias, una para categorías y otra para producto
 
 Repositorio: https://github.com/toarestizabal/Grupo-8-Progrmacion-Web
 
+## Despliegue público
+
+La versión desplegada en Azure está disponible en:
+
+https://pixelforge-games.northcentralus.cloudapp.azure.com/
+
+La aplicación se ejecuta en una máquina virtual de Azure con Oracle Linux.
+Nginx recibe las solicitudes HTTPS y las envía a Django mediante Gunicorn;
+Oracle Database Free 23ai funciona en la misma máquina. El certificado TLS de
+Let's Encrypt se renueva automáticamente.
+
+El archivo `deploy/azure_provision.sh` documenta y automatiza la instalación
+del servidor. Genera las claves de producción dentro del servidor y no guarda
+contraseñas privadas en el repositorio. Se ejecuta como `root` en una máquina
+Oracle Linux 9 recién creada:
+
+```bash
+bash deploy/azure_provision.sh pixelforge-games.northcentralus.cloudapp.azure.com
+```
+
 ## Requisitos
 
 - Python 3.10 o superior.
-- Oracle Database 19c con la base `ORCLPDB` disponible.
+- Oracle Database 19c con la base `ORCLPDB` disponible para el entorno local.
 
 
 
